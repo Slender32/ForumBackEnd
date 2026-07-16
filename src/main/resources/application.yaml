@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: ForumBackEnd
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/test
+    username: slender
+    password: 123456
+  data:
+    redis:
+      password: admin
+      lettuce:
+        pool:
+          max-wait: 1000
+
+mybatis-plus:
+  configuration:
+    default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+  global-config:
+    db-config:
+      id-type: auto
+
+springdoc:
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  api-docs:
+    enabled: true
+    path: /openapi/api-docs
+  swagger-ui:
+    enabled: true
+    path: /openapi/swagger-ui
+    operations-sorter: method
+    tags-sorter: alpha
+    display-request-duration: true
+  writer-with-default-pretty-printer: true

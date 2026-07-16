@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ForumBackEnd OpenAPI Docs</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f7f9;
+            color: #1f2937;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        main {
+            width: min(1120px, calc(100% - 32px));
+            margin: 32px auto;
+        }
+
+        header {
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+        }
+
+        p {
+            margin: 0;
+            color: #4b5563;
+        }
+
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        a {
+            color: #075985;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        pre {
+            overflow: auto;
+            min-height: 420px;
+            margin: 0;
+            padding: 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #ffffff;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+<main>
+    <header>
+        <h1>ForumBackEnd OpenAPI Docs</h1>
+        <p>Static documentation page backed by the generated OpenAPI3 YAML.</p>
+    </header>
+    <nav>
+        <a href="/openapi/swagger-ui">Swagger UI</a>
+        <a href="/openapi/api-docs">OpenAPI JSON</a>
+        <a href="/openapi/api-docs.yaml">OpenAPI YAML</a>
+    </nav>
+    <pre id="spec">Loading OpenAPI YAML...</pre>
+</main>
+<script>
+    var spec = document.getElementById('spec');
+
+    if (window.location.protocol === 'file:') {
+        spec.textContent = 'This page must be opened from the running Spring Boot server. Use http://localhost:8080/docs/openapi.html instead of opening this HTML file directly.';
+    } else {
+        fetch('/openapi/api-docs.yaml')
+            .then(function (response) {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                return response.text();
+            })
+            .then(function (text) {
+                spec.textContent = text;
+            })
+            .catch(function (error) {
+                spec.textContent = 'Failed to load OpenAPI YAML: ' + error.message;
+            });
+    }
+</script>
+</body>
+</html>
