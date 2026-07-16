@@ -25,7 +25,6 @@ import io.swagger.v3.oas.models.security.SecurityRequirement
 import io.swagger.v3.oas.models.security.SecurityScheme
 import io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP
 import io.swagger.v3.oas.models.servers.Server
-import org.springdoc.core.customizers.OpenApiCustomizer
 import org.springdoc.core.customizers.GlobalOpenApiCustomizer
 import org.springdoc.core.models.GroupedOpenApi
 import org.springdoc.core.models.GroupedOpenApi.builder
