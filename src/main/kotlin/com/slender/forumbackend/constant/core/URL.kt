@@ -3,6 +3,7 @@ package com.slender.forumbackend.constant.core
 object URL {
     const val LOGOUT = "/users/*/logout"
 
+    const val CAPTCHA = "/auth/captcha"
     const val LOGIN = "/auth/login"
     const val REGISTER = "/auth/register"
     const val REFRESH = "/auth/refresh"
@@ -13,6 +14,7 @@ object URL {
     const val WEBJARS = "/webjars/**"
 
     val NO_AUTH_PATHS = arrayOf(
+        CAPTCHA,
         LOGIN,
         REGISTER,
         REFRESH,

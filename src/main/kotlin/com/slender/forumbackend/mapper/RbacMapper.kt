@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.core.mapper.BaseMapper
 import com.slender.forumbackend.constant.field.PermissionField.ENABLED as PERMISSION_ENABLED
 import com.slender.forumbackend.constant.field.PermissionField.PERMISSION_ID
+import com.slender.forumbackend.constant.field.RoleField.CODE
 import com.slender.forumbackend.constant.field.RoleField.ENABLED as ROLE_ENABLED
 import com.slender.forumbackend.constant.field.RoleField.ROLE_ID
 import com.slender.forumbackend.constant.field.UserRoleField.USER_ID
@@ -13,6 +14,7 @@ import com.slender.forumbackend.model.entity.user.rbac.RolePermission
 import com.slender.forumbackend.model.entity.user.relation.UserRole
 import org.apache.ibatis.annotations.Mapper
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Mapper
 interface RoleMapper : BaseMapper<Role>
@@ -67,5 +69,16 @@ class RbacRepository(
         }
 
         return (roles.map { it.authority } + permissions.map { it.code }).toSet()
+    }
+
+    fun findEnabledRoleIdByCode(code: String): Long? =
+        roleMapper.selectOne(
+            QueryWrapper<Role>()
+                .eq(CODE, code)
+                .eq(ROLE_ENABLED, true)
+        )?.roleId
+
+    fun bindRole(uid: Long, roleId: Long, createTime: LocalDateTime) {
+        userRoleMapper.insert(UserRole(uid, roleId, createTime))
     }
 }

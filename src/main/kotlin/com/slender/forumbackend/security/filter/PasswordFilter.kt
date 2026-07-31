@@ -3,10 +3,8 @@ package com.slender.forumbackend.security.filter
 import com.slender.forumbackend.constant.core.Message.Exception.EMAIL_OR_PASSWORD_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.REQUEST_READ_ERROR
 import com.slender.forumbackend.constant.core.Redis.Key.USER_BLOCK
-import com.slender.forumbackend.constant.core.Redis.Key.USER_LOGIN_CACHE
 import com.slender.forumbackend.constant.core.URL.LOGIN
 import com.slender.forumbackend.exception.BlockException
-import com.slender.forumbackend.exception.HasLoginException
 import com.slender.forumbackend.exception.JsonParseException
 import com.slender.forumbackend.exception.LoginMisMatchException
 import com.slender.forumbackend.exception.RequestContentException
@@ -54,18 +52,16 @@ class PasswordFilter(
         val user = userRepository.findByEmail(loginRequest.email)
             ?: throw LoginMisMatchException(EMAIL_OR_PASSWORD_ERROR)
 
-        with(redisTemplate) {
-            delete(USER_BLOCK + user.uid)
-            val cache = opsForValue().get(USER_LOGIN_CACHE + user.uid)
-            if(cache != null) throw HasLoginException()
-        }
-
         if (user.status != ACTIVE) throw BlockException()
 
         val matched = passwordEncoder.matches(loginRequest.password, user.passwordHash)
         if (!matched) throw LoginMisMatchException(EMAIL_OR_PASSWORD_ERROR)
 
-        LoginToken(user, rbacRepository.findAuthoritiesByUserId(user.uid))
+        redisTemplate.delete(USER_BLOCK + user.uid)
+        val authorities = rbacRepository.findAuthoritiesByUserId(user.uid)
+        val statistics = userRepository.findStatisticsById(user.uid)
+        val userData = user.toUserData(statistics)
+        LoginToken(userData, authorities)
     }.onFailure {
         when (it) {
             is JsonParseException, is NullPointerException, is MismatchedInputException -> throw RequestContentException()

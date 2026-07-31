@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证码邮件</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .email-container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .email-header {
+            background: linear-gradient(135deg, #4a6ee0, #609dbf);
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        .email-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .email-header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .email-body {
+            padding: 40px;
+        }
+
+        .verification-code {
+            background: #f8f9fc;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            margin: 25px 0;
+            border: 1px dashed #d1d9e6;
+        }
+
+        .code {
+            font-weight: 700;
+            letter-spacing: 8px;
+        }
+
+        .expiry {
+            text-align: center;
+            font-size: 18px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .security-note {
+            padding: 15px 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+            font-size: 15px;
+        }
+
+        .email-footer {
+            text-align: center;
+            padding: 20px 40px;
+            font-size: 16px;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .email-footer a {
+            color: #4a6ee0;
+            text-decoration: none;
+        }
+
+        .email-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 600px) {
+            .email-header, .email-body, .email-footer {
+                padding: 20px;
+            }
+
+            .code {
+                font-size: 26px;
+                letter-spacing: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="email-container">
+    <div class="email-header">
+        <h1 style="color: white" th:text="${messageTitle}"></h1>
+    </div>
+
+    <div class="email-body">
+
+        <p style="font-size: 15px" th:text="${message}"></p>
+
+        <div class="verification-code">
+            <div class="code" th:text="${code}" style="color: #4a6ee0; font-size: 46px"></div>
+            <p class="expiry" style="color: #ff6b6b;">验证码有效期为5分钟</p>
+        </div>
+
+        <div class="security-note" style="background: #fff9e6; border-left: 4px solid #ffc107;">
+            <strong style="color: #856404">安全提示：</strong>
+            <span style="color: #856404">请不要将此验证码透露给任何人</span>
+        </div>
+
+        <p style="font-size: 15px">如非本人操作，请忽略此邮件</p>
+        <p style="font-size: 15px">此邮件由系统自动发送，请勿直接回复。</p>
+    </div>
+
+    <div class="email-footer" style="color: #777; background: #f8f9fc;">
+        <p>&copy; 2026 Prism Node*</p>
+    </div>
+</div>
+</body>
+</html>

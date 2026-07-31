@@ -101,7 +101,7 @@ class OpenApi {
     fun globalAuthOpenApiCustomizer() = GlobalOpenApiCustomizer { it.customizeAuth() }
 
 
-    private fun OpenAPI.customizeAuth() {
+    private final fun OpenAPI.customizeAuth() {
         registerAuthSchemas()
         path(
             LOGIN,
@@ -117,7 +117,7 @@ class OpenApi {
         )
     }
 
-    private fun OpenAPI.registerAuthSchemas() {
+    private final fun OpenAPI.registerAuthSchemas() {
         components = components ?: Components()
         listOf(
             LoginRequest::class.java,
@@ -132,11 +132,12 @@ class OpenApi {
         }
     }
 
-    private fun loginOperation(): Operation = Operation().apply {
+    private final fun loginOperation() = Operation().apply {
         tags = listOf(AUTH_TAG)
         operationId = "login"
         summary = "登录"
-        description = "使用邮箱和密码登录。登录成功后返回accessToken、refreshToken和当前用户信息。"
+        description = "使用邮箱和密码登录。登录成功后返回accessToken、refreshToken、各自的过期时间戳和当前用户信息。" +
+            "单设备登录策略：同一账号新登录会直接覆盖服务端旧的登录缓存。"
         security = emptyList()
         requestBody = RequestBody().apply {
             required = true
@@ -145,13 +146,13 @@ class OpenApi {
         }
         responses = ApiResponses().apply {
             addApiResponse("200", jsonResponse("登录成功", responseSchema(schemaRef("LoginData"))))
-            addApiResponse("400", jsonResponse("请求参数错误或用户已登录", unitResponseSchema()))
-            addApiResponse("401", jsonResponse("邮箱或密码错误", unitResponseSchema()))
-            addApiResponse("500", jsonResponse("登录失败", unitResponseSchema()))
+            addApiResponse("400", jsonResponse("1007 邮箱或密码错误；1008 请求参数错误", unitResponseSchema()))
+            addApiResponse("403", jsonResponse("1005 用户被禁用", unitResponseSchema()))
+            addApiResponse("500", jsonResponse("1500 服务器内部错误", unitResponseSchema()))
         }
     }
 
-    private fun logoutOperation(): Operation = Operation().apply {
+    private final fun logoutOperation() = Operation().apply {
         tags = listOf(AUTH_TAG)
         operationId = "logout"
         summary = "登出"
@@ -172,71 +173,74 @@ class OpenApi {
         )
         responses = ApiResponses().apply {
             addApiResponse("200", jsonResponse("登出成功", unitResponseSchema()))
-            addApiResponse("401", jsonResponse("Token缺失或登录已过期", unitResponseSchema()))
-            addApiResponse("403", jsonResponse("用户被禁用或无权限", unitResponseSchema()))
+            addApiResponse("400", jsonResponse("1006 令牌签名或格式错误", unitResponseSchema()))
+            addApiResponse("401", jsonResponse("1001 令牌缺失；1002 accessToken已过期或登录状态失效", unitResponseSchema()))
+            addApiResponse("403", jsonResponse("1005 用户被禁用；1009 权限不足", unitResponseSchema()))
         }
     }
 
-    private fun jsonResponse(description: String, schema: Schema<*>): ApiResponse =
-        ApiResponse().apply {
-            this.description = description
-            content = jsonContent(schema)
-        }
+    private final fun jsonResponse(
+        description: String,
+        schema: Schema<*>
+    ) = ApiResponse().apply {
+        this.description = description
+        content = jsonContent(schema)
+    }
 
-    private fun jsonContent(schema: Schema<*>): Content =
-        Content().apply {
-            addMediaType(
-                APPLICATION_JSON_VALUE,
-                MediaType().apply {
-                    this.schema = schema
-                }
-            )
-        }
-
-    private fun responseSchema(dataSchema: Schema<*>): Schema<*> =
-        ObjectSchema().apply {
-            description = "统一接口响应"
-            required = listOf(CODE_FIELD, TIMESTAMP_FIELD)
-            addProperty(
-                CODE_FIELD,
-                Schema<Int>().apply {
-                    description = "业务状态码，0表示成功"
-                    type = "integer"
-                    format = "int32"
-                    example = 0
-                }
-            )
-            addProperty(
-                MESSAGE_FIELD,
-                Schema<String>().apply {
-                    description = "响应消息"
-                    type = "string"
-                    nullable = true
-                    example = "操作成功"
-                }
-            )
-            addProperty(
-                TIMESTAMP_FIELD,
-                Schema<Long>().apply {
-                    description = "响应时间戳，单位毫秒"
-                    type = "integer"
-                    format = "int64"
-                    example = 1767225600000
-                }
-            )
-            addProperty(DATA_FIELD, dataSchema)
-        }
-
-    private fun unitResponseSchema(): Schema<*> =
-        responseSchema(
-            Schema<Any>().apply {
-                description = "无响应数据"
-                nullable = true
+    private final fun jsonContent(
+        schema: Schema<*>
+    ) = Content().apply {
+        addMediaType(
+            APPLICATION_JSON_VALUE,
+            MediaType().apply {
+                this.schema = schema
             }
         )
+    }
 
-    private fun schemaRef(schemaName: String): Schema<*> =
+    private final fun responseSchema(
+        dataSchema: Schema<*>
+    ) = ObjectSchema().apply {
+        description = "统一接口响应"
+        required = listOf(CODE_FIELD, TIMESTAMP_FIELD)
+        addProperty(
+            CODE_FIELD,
+            Schema<Int>().apply {
+                description = "业务状态码，0表示成功"
+                type = "integer"
+                format = "int32"
+                example = 0
+            }
+        )
+        addProperty(
+            MESSAGE_FIELD,
+            Schema<String>().apply {
+                description = "响应消息"
+                type = "string"
+                nullable = true
+                example = "操作成功"
+            }
+        )
+        addProperty(
+            TIMESTAMP_FIELD,
+            Schema<Long>().apply {
+                description = "响应时间戳，单位毫秒"
+                type = "integer"
+                format = "int64"
+                example = 1767225600000
+            }
+        )
+        addProperty(DATA_FIELD, dataSchema)
+    }
+
+    private final fun unitResponseSchema() = responseSchema(
         Schema<Any>().apply {
-            `$ref` = "#/components/schemas/$schemaName"
+            description = "无响应数据"
+            nullable = true
         }
+    )
+
+    private final fun schemaRef(schemaName: String) = Schema<Any>().apply {
+        `$ref` = "#/components/schemas/$schemaName"
+    }
 }

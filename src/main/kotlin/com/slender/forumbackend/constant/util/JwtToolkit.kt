@@ -5,6 +5,7 @@ import com.slender.forumbackend.constant.core.Jwt.ACCESS_TOKEN_EXPIRATION_TIME
 import com.slender.forumbackend.constant.core.Jwt.REFRESH_KEY
 import com.slender.forumbackend.constant.core.Jwt.REFRESH_TOKEN_EXPIRATION_TIME
 import com.slender.forumbackend.constant.field.UserField.UID
+import com.slender.forumbackend.model.token.IssuedToken
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys.hmacShaKeyFor
 import java.lang.System.currentTimeMillis
@@ -16,16 +17,20 @@ object JwtToolkit {
         key: String,
         expirationTime: Long,
         data: Map<String, Any>
-    ): String = Jwts.builder()
-        .signWith(hmacShaKeyFor(key.toByteArray(UTF_8)))
-        .claims(data)
-        .expiration(Date(currentTimeMillis() + expirationTime))
-        .compact()
+    ): IssuedToken {
+        val expireAt = currentTimeMillis() + expirationTime
+        val token = Jwts.builder()
+            .signWith(hmacShaKeyFor(key.toByteArray(UTF_8)))
+            .claims(data)
+            .expiration(Date(expireAt))
+            .compact()
+        return IssuedToken(token, expireAt)
+    }
 
-    fun accessToken(uid: Long): String =
+    fun accessToken(uid: Long): IssuedToken =
         getToken(ACCESS_KEY, ACCESS_TOKEN_EXPIRATION_TIME, mapOf(UID to uid))
 
-    fun refreshToken(uid: Long): String =
+    fun refreshToken(uid: Long): IssuedToken =
         getToken(REFRESH_KEY, REFRESH_TOKEN_EXPIRATION_TIME, mapOf(UID to uid))
 
     fun parseToken(key: String, userToken: String): Map<String, Any> =

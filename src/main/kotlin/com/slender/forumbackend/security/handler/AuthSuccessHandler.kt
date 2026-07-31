@@ -5,11 +5,10 @@ import com.slender.forumbackend.constant.core.Redis.Key.USER_LOGIN_CACHE
 import com.slender.forumbackend.constant.core.Redis.Time.ACCESS_TOKEN_EXPIRE_TIME
 import com.slender.forumbackend.constant.util.JwtToolkit.accessToken
 import com.slender.forumbackend.constant.util.JwtToolkit.refreshToken
-import com.slender.forumbackend.library.logger
 import com.slender.forumbackend.model.cache.LoginDataCache
 import com.slender.forumbackend.model.data.LoginData
 import com.slender.forumbackend.model.data.Response.Companion.success
-import com.slender.forumbackend.model.entity.user.content.User
+import com.slender.forumbackend.model.data.UserData
 import com.slender.forumbackend.toolkit.Json
 import com.slender.forumbackend.toolkit.Writer
 import jakarta.servlet.http.HttpServletRequest
@@ -23,41 +22,26 @@ import org.springframework.stereotype.Component
 class AuthSuccessHandler(
     private val writer: Writer,
     private val redisTemplate: StringRedisTemplate,
-    private val json: Json,
+    private val json: Json
 ) : AuthenticationSuccessHandler {
-    private companion object {
-        val log = logger()
-    }
 
     override fun onAuthenticationSuccess(
         request: HttpServletRequest,
         response: HttpServletResponse,
         authentication: Authentication
     ) {
-        val user = authentication.principal as User
+        val userData = authentication.principal as UserData
         val authorities = authentication.authorities.mapNotNull { it.authority }.toSet()
 
-        user.apply {
+        userData.run {
             val loginDataCache = LoginDataCache(uid, name, email, avatar, authorities)
             redisTemplate.opsForValue().set(
                 USER_LOGIN_CACHE + uid,
                 json.format(loginDataCache),
                 ACCESS_TOKEN_EXPIRE_TIME,
             )
-            log.info("登录成功 {}", uid)
-            writer.write(
-                success(
-                    LOGIN_SUCCESS,
-                    LoginData(
-                        uid,
-                        name,
-                        accessToken(uid),
-                        refreshToken(uid),
-                        user.toUserData(),
-                    )
-                ),
-                response,
-            )
+            val data = LoginData(accessToken(uid), refreshToken(uid), this)
+            writer.write(success(LOGIN_SUCCESS, data), response)
         }
     }
 }

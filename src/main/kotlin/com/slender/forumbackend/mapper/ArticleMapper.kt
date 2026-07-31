@@ -41,4 +41,6 @@ class ArticleRepository(
     private val articleLikeMapper: ArticleLikeMapper,
     private val articleReactionMapper: ArticleReactionMapper,
     private val articleTagMapper: ArticleTagMapper,
-)
+){
+
+}

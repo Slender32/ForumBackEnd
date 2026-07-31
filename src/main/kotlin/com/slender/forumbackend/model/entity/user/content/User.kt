@@ -22,14 +22,17 @@ data class User(
     val createTime: LocalDateTime,
     val updateTime: LocalDateTime
 ){
-    fun toUserData() = UserData(
+    fun toUserData(statistics: UserStatistics? = null) = UserData(
         uid = uid,
         name = name,
         email = email,
         avatar = avatar,
         gender = gender,
         signature = signature,
-        status = status,
         createTime = createTime.timestamp,
+        fanCount = statistics?.fanCount ?: 0,
+        followCount = statistics?.followCount ?: 0,
+        publishedArticleCount = statistics?.publishedArticleCount ?: 0,
+        likedCount = statistics?.likedCount ?: 0,
     )
 }

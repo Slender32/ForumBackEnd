@@ -7,10 +7,12 @@ import java.time.Duration.ofMillis
 object Redis {
     object Time {
         val ACCESS_TOKEN_EXPIRE_TIME: Duration = ofMillis(HOUR)
+        val REGISTER_CAPTCHA_EXPIRE_TIME: Duration = Duration.ofMinutes(5)
     }
 
     object Key {
         const val USER_LOGIN_CACHE = "LoginCache:"
         const val USER_BLOCK = "Block:"
+        const val REGISTER_CAPTCHA = "RegisterCaptcha:"
     }
 }

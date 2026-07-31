@@ -31,4 +31,16 @@ class UserRepository(
 ) {
     fun findByEmail(email: String): User? =
         userMapper.selectOne(QueryWrapper<User>().eq(EMAIL, email))
+
+    fun findStatisticsById(uid: Long): UserStatistics? =
+        userStatisticsMapper.selectById(uid)
+
+    fun createUser(user: User): Long {
+        userMapper.insert(user)
+        return user.uid
+    }
+
+    fun createStatistics(uid: Long) {
+        userStatisticsMapper.insert(UserStatistics(uid))
+    }
 }

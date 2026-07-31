@@ -7,7 +7,5 @@ sealed class LoginException(message: String? = null) : AuthenticationException(m
 class BlockException : LoginException()
 class LoginExpiredException : LoginException()
 class LoginMisMatchException(message: String) : LoginException(message)
-class LoginNotExpiredException : LoginException()
-class HasLoginException : LoginException()
 class RequestContentException : LoginException()
 class TokenNotFoundException : LoginException()

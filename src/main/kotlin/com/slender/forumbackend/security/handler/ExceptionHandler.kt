@@ -1,11 +1,10 @@
 package com.slender.forumbackend.security.handler
 
-import com.slender.forumbackend.constant.core.Message.Exception.UNKNOWN_ERROR
-import com.slender.forumbackend.model.data.Response.Companion.fail
+import com.slender.forumbackend.constant.enumeration.error.Error.UNAUTHENTICATED
+import com.slender.forumbackend.model.error.ExceptionAdvice
 import com.slender.forumbackend.toolkit.Writer
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.stereotype.Component
@@ -19,6 +18,6 @@ class ExceptionHandler(
         response: HttpServletResponse,
         exception: AuthenticationException
     ) {
-        writer.write<Unit>(fail(UNAUTHORIZED.value(), UNKNOWN_ERROR), response)
+        writer.write(ExceptionAdvice(UNAUTHENTICATED), response)
     }
 }

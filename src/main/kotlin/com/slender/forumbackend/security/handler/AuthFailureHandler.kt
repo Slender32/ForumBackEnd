@@ -1,22 +1,11 @@
 package com.slender.forumbackend.security.handler
 
-import com.slender.forumbackend.constant.core.Message.Exception.BLOCK_ERROR
-import com.slender.forumbackend.constant.core.Message.Exception.EMAIL_OR_PASSWORD_ERROR
-import com.slender.forumbackend.constant.core.Message.Exception.HAS_LOGIN_ERROR
-import com.slender.forumbackend.constant.core.Message.Exception.LOGIN_ERROR
-import com.slender.forumbackend.constant.core.Message.Exception.REQUEST_CONTENT_ERROR
-import com.slender.forumbackend.exception.BlockException
-import com.slender.forumbackend.exception.HasLoginException
-import com.slender.forumbackend.exception.LoginMisMatchException
-import com.slender.forumbackend.exception.RequestContentException
-import com.slender.forumbackend.exception.ValidationException
-import com.slender.forumbackend.model.data.Response
-import com.slender.forumbackend.model.data.Response.Companion.fail
+import com.slender.forumbackend.constant.enumeration.error.Error.*
+import com.slender.forumbackend.exception.*
+import com.slender.forumbackend.model.error.ExceptionAdvice
 import com.slender.forumbackend.toolkit.Writer
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.HttpStatus.BAD_REQUEST
-import org.springframework.http.HttpStatus.FORBIDDEN
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
 import org.springframework.stereotype.Component
@@ -31,16 +20,17 @@ class AuthFailureHandler(
         response: HttpServletResponse,
         exception: AuthenticationException
     ) {
-        val responseData = exception.toErrorResponse()
-        writer.write(responseData, response)
+        val advice = exception.toError()
+        writer.write(advice, response)
     }
 
-    private fun AuthenticationException.toErrorResponse(): Response<Unit> = when (this) {
-        is ValidationException,
-        is LoginMisMatchException -> fail(BAD_REQUEST.value(), message ?: EMAIL_OR_PASSWORD_ERROR)
-        is HasLoginException -> fail(BAD_REQUEST.value(), HAS_LOGIN_ERROR)
-        is RequestContentException -> fail(BAD_REQUEST.value(), REQUEST_CONTENT_ERROR)
-        is BlockException -> fail(FORBIDDEN.value(), BLOCK_ERROR)
-        else -> fail(LOGIN_ERROR)
+    private final fun AuthenticationException.toError() = when (this) {
+        is ValidationException -> ExceptionAdvice(REQUEST_CONTENT_INVALID, message)
+        is LoginMisMatchException -> ExceptionAdvice(LOGIN_MISMATCH, message)
+        is RequestContentException -> ExceptionAdvice(REQUEST_CONTENT_INVALID)
+        is BlockException -> ExceptionAdvice(USER_BLOCKED)
+        is TokenNotFoundException -> ExceptionAdvice(TOKEN_MISSING)
+        is LoginExpiredException -> ExceptionAdvice(ACCESS_TOKEN_EXPIRED)
+        else -> ExceptionAdvice(LOGIN_FAILED)
     }
 }
