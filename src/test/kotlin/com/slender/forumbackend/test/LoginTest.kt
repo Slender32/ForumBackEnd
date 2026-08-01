@@ -77,7 +77,7 @@ class LoginTest (
 
     @Test
     fun `login returns token expire timestamps and user statistics`() {
-        val user = fakeUser()
+        val user = fakeUser(level = 4)
         fakeStatistics(user.uid, fanCount = 3, followCount = 4, publishedArticleCount = 5, likedCount = 6)
         val issuedAt = currentTimeMillis()
 
@@ -89,6 +89,7 @@ class LoginTest (
             .andExpect(jsonPath("$.data.userData.uid").value(user.uid))
             .andExpect(jsonPath("$.data.userData.name").value(user.name))
             .andExpect(jsonPath("$.data.userData.email").value(user.email))
+            .andExpect(jsonPath("$.data.userData.level").value(user.level))
             .andExpect(jsonPath("$.data.userData.fanCount").value(3))
             .andExpect(jsonPath("$.data.userData.followCount").value(4))
             .andExpect(jsonPath("$.data.userData.publishedArticleCount").value(5))
@@ -370,18 +371,20 @@ class LoginTest (
         email: String = ACTIVE_EMAIL,
         password: String = PASSWORD,
         status: UserStatus = UserStatus.ACTIVE,
+        level: Int = 0,
     ): TestUser {
         val now = LocalDateTime.now()
         jdbcTemplate.update(
             """
-            insert into users(uid, name, email, password_hash, avatar, gender, signature, status, create_time, update_time)
-            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            insert into users(uid, name, email, password_hash, avatar, level, gender, signature, status, create_time, update_time)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             uid,
             name,
             email,
             passwordEncoder.encode(password),
             "https://example.com/avatar.png",
+            level,
             Gender.Unknown.value,
             "fake login test user",
             status.value,
@@ -400,7 +403,7 @@ class LoginTest (
             roleId,
             now,
         )
-        return TestUser(uid, name, email, password)
+        return TestUser(uid, name, email, password, level)
     }
 
     private fun fakeStatistics(
@@ -437,6 +440,7 @@ class LoginTest (
         val name: String,
         val email: String,
         val password: String,
+        val level: Int,
     )
 
     private data class LoginTokens(

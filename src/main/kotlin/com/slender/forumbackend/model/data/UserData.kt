@@ -17,6 +17,9 @@ data class UserData(
     @field:Schema(description = "头像地址", example = "https://example.com/avatar.png")
     val avatar: String,
 
+    @field:Schema(description = "用户等级，范围0到6", example = "0", minimum = "0", maximum = "6")
+    val level: Int,
+
     @field:Schema(description = "性别")
     val gender: Gender,
 

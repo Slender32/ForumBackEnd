@@ -24,5 +24,6 @@ object Message {
         const val TOKEN_SIGNATURE_ERROR = "令牌签名错误"
         const val UNKNOWN_ERROR = "认证失败"
         const val USER_NOT_FOUND_ERROR = "用户不存在"
+        const val ARTICLE_NOT_FOUND_ERROR = "文章不存在"
     }
 }

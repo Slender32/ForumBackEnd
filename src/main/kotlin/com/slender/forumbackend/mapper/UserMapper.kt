@@ -35,6 +35,9 @@ class UserRepository(
     fun findStatisticsById(uid: Long): UserStatistics? =
         userStatisticsMapper.selectById(uid)
 
+    fun findByIds(userIds: Collection<Long>) =
+        userIds.distinct().takeIf { it.isNotEmpty() }?.let { userMapper.selectByIds(it) } ?: emptyList()
+
     fun createUser(user: User): Long {
         userMapper.insert(user)
         return user.uid

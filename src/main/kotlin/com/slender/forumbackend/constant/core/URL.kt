@@ -7,6 +7,8 @@ object URL {
     const val LOGIN = "/auth/login"
     const val REGISTER = "/auth/register"
     const val REFRESH = "/auth/refresh"
+    const val ARTICLE_LIST = "/article/list"
+    const val ARTICLE_DETAIL = "/article/*"
     const val OPENAPI_API_DOCS_YAML = "/openapi/api-docs.yaml"
     const val OPENAPI_API_DOCS_ALL = "/openapi/api-docs/**"
     const val SWAGGER_UI_ALL = "/openapi/swagger-ui/**"
@@ -18,6 +20,8 @@ object URL {
         LOGIN,
         REGISTER,
         REFRESH,
+        ARTICLE_LIST,
+        ARTICLE_DETAIL,
         OPENAPI_API_DOCS_YAML,
         OPENAPI_API_DOCS_ALL,
         SWAGGER_UI_ALL,

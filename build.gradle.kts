@@ -39,6 +39,7 @@ fun DependencyHandlerScope.runtime(){
     //my dependencies
     implementation("io.jsonwebtoken:jjwt:0.13.0")
     implementation("com.baomidou:mybatis-plus-spring-boot4-starter:3.5.17")
+    implementation("com.baomidou:mybatis-plus-jsqlparser:3.5.17")
 
     //relational dependencies
     implementation("org.flywaydb:flyway-database-postgresql")

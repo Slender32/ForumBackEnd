@@ -20,6 +20,7 @@ import com.slender.forumbackend.constant.core.Message.Exception.UNKNOWN_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.USER_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.EMAIL_REGISTERED_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.CAPTCHA_INVALID_ERROR
+import com.slender.forumbackend.constant.core.Message.Exception.ARTICLE_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.INTERNAL_ERROR
 
 enum class Error(
@@ -40,5 +41,6 @@ enum class Error(
     USER_NOT_FOUND(1101, NOT_FOUND, USER_NOT_FOUND_ERROR),
     USER_ALREADY_EXISTS(1102, CONFLICT, EMAIL_REGISTERED_ERROR),
     CAPTCHA_INVALID(1103, BAD_REQUEST, CAPTCHA_INVALID_ERROR),
+    ARTICLE_NOT_FOUND(1201, NOT_FOUND, ARTICLE_NOT_FOUND_ERROR),
     INTERNAL(1500, INTERNAL_SERVER_ERROR, INTERNAL_ERROR),
 }

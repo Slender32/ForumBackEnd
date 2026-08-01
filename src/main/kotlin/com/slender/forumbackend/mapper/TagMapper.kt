@@ -12,5 +12,8 @@ interface TagMapper : BaseMapper<Tag>
 class TagRepository(
     private val tagMapper: TagMapper
 ){
-
+    fun findByIds(tagIds: Collection<Long>) =
+        tagIds.distinct()
+            .takeIf { it.isNotEmpty() }
+            ?.let { tagMapper.selectByIds(it) } ?: emptyList()
 }

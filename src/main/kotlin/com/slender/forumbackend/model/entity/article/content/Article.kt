@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
 import com.slender.forumbackend.constant.enumeration.article.ArticleStatus
 import com.slender.forumbackend.constant.enumeration.article.ArticleVisibility
+import com.slender.forumbackend.library.timestamp
+import com.slender.forumbackend.model.article.ArticleCursorData
 import java.time.LocalDateTime
 
 @TableName("articles")
@@ -20,4 +22,9 @@ data class Article(
     val reviseTime: LocalDateTime,
     val createTime: LocalDateTime,
     val updateTime: LocalDateTime,
-)
+) {
+    fun toCursorData() = ArticleCursorData(
+        articleId = articleId,
+        publishTime = publishTime.timestamp,
+    )
+}

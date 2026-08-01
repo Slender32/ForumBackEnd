@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
 import com.slender.forumbackend.constant.enumeration.user.UserStatus
 import com.slender.forumbackend.library.timestamp
+import com.slender.forumbackend.model.article.ArticleUserData
 import com.slender.forumbackend.model.data.UserData
 import com.slender.forumbackend.constant.enumeration.user.Gender
 import java.time.LocalDateTime
@@ -16,6 +17,7 @@ data class User(
     val email: String,
     val passwordHash: String,
     val avatar: String,
+    val level: Int = 0,
     val gender: Gender,
     val signature: String,
     val status: UserStatus,
@@ -27,6 +29,7 @@ data class User(
         name = name,
         email = email,
         avatar = avatar,
+        level = level,
         gender = gender,
         signature = signature,
         createTime = createTime.timestamp,
@@ -35,4 +38,6 @@ data class User(
         publishedArticleCount = statistics?.publishedArticleCount ?: 0,
         likedCount = statistics?.likedCount ?: 0,
     )
+
+    fun toArticleUserData() = ArticleUserData(uid, name, avatar, level)
 }

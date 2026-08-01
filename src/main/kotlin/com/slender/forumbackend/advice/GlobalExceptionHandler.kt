@@ -1,32 +1,14 @@
 package com.slender.forumbackend.advice
 
 import com.slender.forumbackend.constant.enumeration.error.Error
-import com.slender.forumbackend.constant.enumeration.error.Error.ACCESS_TOKEN_EXPIRED
-import com.slender.forumbackend.constant.enumeration.error.Error.AUTHORITY_INSUFFICIENT
-import com.slender.forumbackend.constant.enumeration.error.Error.CAPTCHA_INVALID
-import com.slender.forumbackend.constant.enumeration.error.Error.LOGIN_MISMATCH
-import com.slender.forumbackend.constant.enumeration.error.Error.REQUEST_CONTENT_INVALID
-import com.slender.forumbackend.constant.enumeration.error.Error.TOKEN_MISSING
-import com.slender.forumbackend.constant.enumeration.error.Error.USER_ALREADY_EXISTS
-import com.slender.forumbackend.constant.enumeration.error.Error.USER_BLOCKED
-import com.slender.forumbackend.constant.enumeration.error.Error.USER_NOT_FOUND
-import com.slender.forumbackend.exception.BlockException
-import com.slender.forumbackend.exception.CaptchaInvalidException
-import com.slender.forumbackend.exception.LoginException
-import com.slender.forumbackend.exception.LoginExpiredException
-import com.slender.forumbackend.exception.LoginMisMatchException
-import com.slender.forumbackend.exception.RequestContentException
-import com.slender.forumbackend.exception.TokenNotFoundException
-import com.slender.forumbackend.exception.UserAlreadyExistsException
-import com.slender.forumbackend.exception.UserException
-import com.slender.forumbackend.exception.UserNotFoundException
-import com.slender.forumbackend.exception.ValidationException
-import com.slender.forumbackend.model.data.Response
+import com.slender.forumbackend.constant.enumeration.error.Error.*
+import com.slender.forumbackend.exception.*
 import com.slender.forumbackend.model.data.Response.Companion.fail
-import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.status
 import org.springframework.http.converter.HttpMessageNotReadableException
 import org.springframework.security.access.AccessDeniedException
+import org.springframework.validation.BindException
+import org.springframework.validation.BindingResult
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -49,7 +31,11 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler
     fun handleMethodArgumentNotValid(exception: MethodArgumentNotValidException) =
-        REQUEST_CONTENT_INVALID.toResponseEntity(exception.bindingResult.fieldError?.defaultMessage)
+        REQUEST_CONTENT_INVALID.toResponseEntity(exception.bindingResult.message)
+
+    @ExceptionHandler
+    fun handleBind(exception: BindException) =
+        REQUEST_CONTENT_INVALID.toResponseEntity(exception.bindingResult.message)
 
     @ExceptionHandler
     fun handleHttpMessageNotReadable(e: HttpMessageNotReadableException)
@@ -63,9 +49,17 @@ class GlobalExceptionHandler {
     }.toResponseEntity()
 
     @ExceptionHandler
+    fun handleArticle(exception: ArticleException) = when (exception) {
+        is ArticleNotFoundException -> ARTICLE_NOT_FOUND
+    }.toResponseEntity()
+
+    @ExceptionHandler
     fun handleAccessDenied(e: AccessDeniedException) = AUTHORITY_INSUFFICIENT.toResponseEntity()
 
-    private final fun Error.toResponseEntity(message: String? = null) : ResponseEntity<Response<Unit>>
-        = status(status).body(fail(this, message))
+    private final fun Error.toResponseEntity(message: String? = null)
+        = status(status).body(fail<Unit>(this, message))
+
+    private final val BindingResult.message
+        get() = fieldError?.defaultMessage ?: globalError?.defaultMessage
 
 }
