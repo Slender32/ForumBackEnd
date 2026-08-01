@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: ForumBackEnd
   datasource:
@@ -12,13 +14,26 @@ spring:
       lettuce:
         pool:
           max-wait: 1000
+  mail:
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    port: 465
+    host: smtp.qq.com
+    default-encoding: UTF-8
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
 
 mybatis-plus:
   configuration:
     default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       id-type: auto
+      insert-ignore-auto-increment-column: true
 
 springdoc:
   default-consumes-media-type: application/json
