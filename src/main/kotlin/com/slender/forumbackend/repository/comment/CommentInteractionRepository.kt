@@ -1,13 +1,12 @@
 package com.slender.forumbackend.repository.comment
 
-import com.slender.forumbackend.constant.core.Redis.Key.COMMENT_LIKE_PENDING
 import com.slender.forumbackend.mapper.CommentLikeMapper
 import com.slender.forumbackend.mapper.CommentReactionMapper
 import com.slender.forumbackend.mapper.CommentStatisticsMapper
 import com.slender.forumbackend.model.entity.comment.content.CommentStatistics
 import com.slender.forumbackend.model.entity.comment.relation.CommentLike
 import com.slender.forumbackend.model.entity.comment.relation.CommentReaction
-import com.slender.forumbackend.toolkit.LikeStatisticRepository
+import com.slender.forumbackend.component.common.InteractionPendingSyncExecutor.LikeStatisticRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
@@ -18,8 +17,6 @@ class CommentInteractionRepository(
     private val commentLikeMapper: CommentLikeMapper,
     private val commentReactionMapper: CommentReactionMapper,
 ) : LikeStatisticRepository {
-    override val pendingKey = COMMENT_LIKE_PENDING
-
     override fun targetExists(targetId: Long): Boolean =
         commentQueryRepository.targetExists(targetId)
 

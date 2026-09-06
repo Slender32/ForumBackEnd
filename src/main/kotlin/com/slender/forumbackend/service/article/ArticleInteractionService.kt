@@ -1,10 +1,11 @@
 package com.slender.forumbackend.service.article
 
 import com.slender.forumbackend.constant.core.Redis.Key.ARTICLE_REACTION_PENDING
+import com.slender.forumbackend.constant.core.Redis.Key.ARTICLE_LIKE_PENDING
 import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.repository.article.ArticleInteractionRepository
 import com.slender.forumbackend.repository.article.ArticleQueryRepository
-import com.slender.forumbackend.toolkit.StatisticPendingWriter
+import com.slender.forumbackend.component.common.StatisticPendingWriter
 import org.springframework.stereotype.Service
 
 @Service
@@ -15,7 +16,12 @@ class ArticleInteractionService(
 ) {
     fun toggleLike(articleId: Long, userId: Long) {
         articleQueryRepository.findVisibleArticleByIdOrThrow(articleId)
-        statisticPendingWriter.toggleLike(articleId, userId, articleInteractionRepository)
+        statisticPendingWriter.toggleLike(
+            ARTICLE_LIKE_PENDING,
+            articleId,
+            userId,
+            articleInteractionRepository.hasLike(articleId, userId),
+        )
     }
 
     fun react(articleId: Long, userId: Long, emoji: String) {

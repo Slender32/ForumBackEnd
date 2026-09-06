@@ -1,15 +1,11 @@
 package com.slender.forumbackend.service.comment
 
+import com.slender.forumbackend.constant.core.Redis.Key.COMMENT_LIKE_PENDING
 import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.repository.comment.CommentInteractionRepository
 import com.slender.forumbackend.repository.comment.CommentQueryRepository
-import com.slender.forumbackend.service.InteractionPendingSyncExecutor
-import com.slender.forumbackend.toolkit.StatisticPendingWriter
-import com.slender.forumbackend.toolkit.StatisticPendingWriter.Companion.toPendingBoolean
-import com.slender.forumbackend.toolkit.StatisticPendingWriter.Companion.toPendingTarget
-import com.slender.forumbackend.toolkit.deletePendingValueIfUnchanged
-import com.slender.forumbackend.toolkit.pendingEntries
-import org.springframework.data.redis.core.StringRedisTemplate
+import com.slender.forumbackend.component.common.InteractionPendingSyncExecutor
+import com.slender.forumbackend.component.common.StatisticPendingWriter
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime.now
 
@@ -17,13 +13,17 @@ import java.time.LocalDateTime.now
 class CommentInteractionService(
     private val commentQueryRepository: CommentQueryRepository,
     private val commentInteractionRepository: CommentInteractionRepository,
-    private val redisTemplate: StringRedisTemplate,
     private val statisticPendingWriter: StatisticPendingWriter,
     private val syncExecutor: InteractionPendingSyncExecutor,
 ) {
     fun toggleLike(commentId: Long, userId: Long) {
         commentQueryRepository.findVisibleCommentByIdOrThrow(commentId)
-        statisticPendingWriter.toggleLike(commentId, userId, commentInteractionRepository)
+        statisticPendingWriter.toggleLike(
+            COMMENT_LIKE_PENDING,
+            commentId,
+            userId,
+            commentInteractionRepository.hasLike(commentId, userId),
+        )
     }
 
     fun react(commentId: Long, userId: Long, emoji: String) {
@@ -35,18 +35,9 @@ class CommentInteractionService(
         commentInteractionRepository.upsertReaction(commentId, userId, trimmed, now())
     }
 
-    fun syncPendingLikes() {
-        val pendingKey = commentInteractionRepository.pendingKey
-        for ((field, value) in redisTemplate.pendingEntries(pendingKey)) {
-            val target = field.toPendingTarget()
-            val desiredLiked = value.toPendingBoolean()
-            if (target == null || desiredLiked == null || !commentInteractionRepository.targetExists(target.targetId)) {
-                redisTemplate.deletePendingValueIfUnchanged(pendingKey, field, value)
-                continue
-            }
-            syncExecutor.syncLike(commentInteractionRepository, target, field, value, desiredLiked)
-        }
-    }
+    fun syncPendingLikes() =
+        syncExecutor.syncPendingLikes(commentInteractionRepository, COMMENT_LIKE_PENDING)
+
 
     private companion object {
         const val EMOJI_LIMIT = 8
