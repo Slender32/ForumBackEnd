@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.CommentLikeMapper">
+    <select id="selectByCommentAndUser" resultType="com.slender.forumbackend.model.entity.comment.relation.CommentLike">
+        SELECT comment_id, user_id, create_time
+        FROM comment_likes
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </select>
+
+    <select id="selectCommentIdsByUser" resultType="long">
+        SELECT comment_id
+        FROM comment_likes
+        WHERE user_id = #{userId}
+          AND comment_id IN
+          <foreach collection="commentIds" item="commentId" open="(" separator="," close=")">
+              #{commentId}
+          </foreach>
+    </select>
+
+    <delete id="deleteByCommentAndUser">
+        DELETE FROM comment_likes
+        WHERE comment_id = #{commentId} AND user_id = #{userId}
+    </delete>
+</mapper>

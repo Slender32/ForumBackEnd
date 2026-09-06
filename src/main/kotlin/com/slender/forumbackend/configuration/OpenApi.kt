@@ -1,6 +1,6 @@
 package com.slender.forumbackend.configuration
 
-import com.slender.forumbackend.constant.core.URL.LOGIN
+import com.slender.forumbackend.constant.core.Http.LOGIN
 import com.slender.forumbackend.model.data.LoginData
 import com.slender.forumbackend.model.data.RefreshData
 import com.slender.forumbackend.model.data.Response

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.ConversationMapper">
+    <select id="selectPageByUser" resultType="com.slender.forumbackend.model.entity.conversation.Conversation">
+        SELECT conversation_id, user_id_1, user_id_2,
+               last_message_id, last_message_time, create_time, update_time
+        FROM conversations
+        WHERE (user_id_1 = #{userId} OR user_id_2 = #{userId})
+          AND last_message_id IS NOT NULL
+        <if test="cursorConversationId != -1 and cursorLastMessageTime != null">
+            AND (last_message_time &lt; #{cursorLastMessageTime}
+                 OR (last_message_time = #{cursorLastMessageTime}
+                     AND conversation_id &lt; #{cursorConversationId}))
+        </if>
+        ORDER BY last_message_time DESC, conversation_id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

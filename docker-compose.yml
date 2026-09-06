@@ -1,0 +1,73 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: forum-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: forum
+      POSTGRES_USER: slender
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U slender -d forum"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: forum-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: forum-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/forum
+      SPRING_DATASOURCE_USERNAME: slender
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      MAIL_USERNAME: ${MAIL_USERNAME:-ci@example.com}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-change-me}
+      OSS_ACCESS_KEY_ID: ${OSS_ACCESS_KEY_ID:-change-me}
+      OSS_ACCESS_KEY_SECRET: ${OSS_ACCESS_KEY_SECRET:-change-me}
+    ports:
+      - "8080:8080"
+
+  nginx:
+    build:
+      context: ../ForumWebSite
+      dockerfile: Dockerfile
+    container_name: forum-nginx
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_started
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.annotation.TableName
 import com.slender.forumbackend.constant.enumeration.article.ArticleStatus
 import com.slender.forumbackend.constant.enumeration.article.ArticleVisibility
 import com.slender.forumbackend.library.timestamp
-import com.slender.forumbackend.model.article.ArticleCursorData
+import com.slender.forumbackend.model.data.article.ArticleCursorData
 import java.time.LocalDateTime
 
 @TableName("articles")

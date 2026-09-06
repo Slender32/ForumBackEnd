@@ -40,6 +40,7 @@ fun DependencyHandlerScope.runtime(){
     implementation("io.jsonwebtoken:jjwt:0.13.0")
     implementation("com.baomidou:mybatis-plus-spring-boot4-starter:3.5.17")
     implementation("com.baomidou:mybatis-plus-jsqlparser:3.5.17")
+    implementation("com.aliyun:alibabacloud-oss-v2:0.5.1")
 
     //relational dependencies
     implementation("org.flywaydb:flyway-database-postgresql")
@@ -57,7 +58,6 @@ fun DependencyHandlerScope.test(){
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
-    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
     add(mockitoAgent.name, "org.mockito:mockito-core") {
         isTransitive = false
@@ -94,4 +94,21 @@ kotlin {
 tasks.withType<Test> {
     useJUnitPlatform()
     jvmArgs("-javaagent:${mockitoAgent.asPath}", "-Xshare:off")
+}
+
+tasks.register<JavaExec>("fullStackRun") {
+    description = "Starts the full React -> Nginx -> Spring Boot stack and keeps it running."
+    group = "application"
+    classpath = sourceSets["test"].runtimeClasspath
+    mainClass.set("com.slender.forumbackend.fullstack.FullStackApplicationKt")
+    dependsOn(tasks.named("bootJar"), tasks.named("testClasses"))
+    standardInput = System.`in`
+    System.getenv()
+        .filterKeys { it.equals("PATH", ignoreCase = true) }
+        .forEach { (key, value) ->
+            environment(
+                key,
+                value.filterNot { it in "\u202A\u202B\u202C\u202D\u202E\u2066\u2067\u2068\u2069" },
+            )
+        }
 }

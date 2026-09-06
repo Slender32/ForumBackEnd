@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.ArticleTagMapper">
+    <select id="selectByArticleIds" resultType="com.slender.forumbackend.model.entity.article.relation.ArticleTag">
+        SELECT article_id, tag_id, create_time FROM article_tags
+        WHERE article_id IN
+        <foreach collection="articleIds" item="articleId" open="(" separator="," close=")">#{articleId}</foreach>
+        ORDER BY create_time ASC
+    </select>
+</mapper>

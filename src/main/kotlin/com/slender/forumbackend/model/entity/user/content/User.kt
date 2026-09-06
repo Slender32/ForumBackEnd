@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableId
 import com.baomidou.mybatisplus.annotation.TableName
 import com.slender.forumbackend.constant.enumeration.user.UserStatus
 import com.slender.forumbackend.library.timestamp
-import com.slender.forumbackend.model.article.ArticleUserData
+import com.slender.forumbackend.model.data.article.ArticleUserData
 import com.slender.forumbackend.model.data.UserData
 import com.slender.forumbackend.constant.enumeration.user.Gender
 import java.time.LocalDateTime

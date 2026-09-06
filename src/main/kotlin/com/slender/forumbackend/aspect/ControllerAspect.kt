@@ -15,9 +15,15 @@ import java.lang.reflect.Array as RfArray
 @Order(6)
 @Component
 class ControllerAspect {
-    private val log = logger()
 
-    @Around("@within(org.springframework.web.bind.annotation.RestController)")
+    private companion object {
+        const val REST_CONTROLLER = "org.springframework.web.bind.annotation.RestController"
+        const val OMITTED_LIST_RESULT = "<list result omitted>"
+        const val ARRAY_PREVIEW_SIZE = 6
+        val log = logger()
+    }
+
+    @Around("@within($REST_CONTROLLER)")
     fun monitorController(joinPoint: ProceedingJoinPoint): Any? {
         val startedAt = currentTimeMillis()
         val signature = joinPoint.signature as MethodSignature
@@ -90,8 +96,4 @@ class ControllerAspect {
         return "[$preview$ellipsis]"
     }
 
-    companion object {
-        private const val OMITTED_LIST_RESULT = "<list result omitted>"
-        private const val ARRAY_PREVIEW_SIZE = 6
-    }
 }

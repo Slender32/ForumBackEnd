@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.ArticleMapper">
+
+    <sql id="visibleCondition">
+        status = 'PUBLISHED' AND visibility = 'PUBLIC'
+    </sql>
+
+    <select id="selectVisibleById" resultType="com.slender.forumbackend.model.entity.article.content.Article">
+        SELECT article_id, author_id, title, summary, cover, status, visibility,
+               publish_time, revise_time, create_time, update_time
+        FROM articles
+        WHERE article_id = #{articleId}
+          AND <include refid="visibleCondition"/>
+    </select>
+
+    <select id="selectVisiblePage" resultType="com.slender.forumbackend.model.entity.article.content.Article">
+        SELECT article_id, author_id, title, summary, cover, status, visibility,
+               publish_time, revise_time, create_time, update_time
+        FROM articles
+        WHERE <include refid="visibleCondition"/>
+        <if test="authorId != null">AND author_id = #{authorId}</if>
+        <if test="tagId != null">
+            AND article_id IN (SELECT article_id FROM article_tags WHERE tag_id = #{tagId})
+        </if>
+        <if test="articleIds != null and articleIds.size() > 0">
+            AND article_id IN
+            <foreach collection="articleIds" item="articleId" open="(" separator="," close=")">
+                #{articleId}
+            </foreach>
+        </if>
+        <if test="cursorPublishTime != null">
+            AND (publish_time &lt; #{cursorPublishTime}
+                 OR (publish_time = #{cursorPublishTime} AND article_id &lt; #{cursorArticleId}))
+        </if>
+        ORDER BY publish_time DESC, article_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectVisiblePageByKeyword" resultType="com.slender.forumbackend.model.entity.article.content.Article">
+        SELECT article_id, author_id, title, summary, cover, status, visibility,
+               publish_time, revise_time, create_time, update_time
+        FROM articles
+        WHERE <include refid="visibleCondition"/>
+          AND (title ILIKE #{keywordPattern} ESCAPE '!'
+               OR summary ILIKE #{keywordPattern} ESCAPE '!')
+        <if test="cursorPublishTime != null">
+            AND (publish_time &lt; #{cursorPublishTime}
+                 OR (publish_time = #{cursorPublishTime} AND article_id &lt; #{cursorArticleId}))
+        </if>
+        ORDER BY publish_time DESC, article_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectVisibleByIds" resultType="com.slender.forumbackend.model.entity.article.content.Article">
+        SELECT article_id, author_id, title, summary, cover, status, visibility,
+               publish_time, revise_time, create_time, update_time
+        FROM articles
+        WHERE <include refid="visibleCondition"/>
+          AND article_id IN
+          <foreach collection="articleIds" item="articleId" open="(" separator="," close=")">
+              #{articleId}
+          </foreach>
+    </select>
+
+    <select id="selectTitleSuggestions" resultType="com.slender.forumbackend.model.entity.article.content.Article">
+        SELECT article_id, author_id, title, summary, cover, status, visibility,
+               publish_time, revise_time, create_time, update_time
+        FROM articles
+        WHERE <include refid="visibleCondition"/>
+          AND title ILIKE #{pattern} ESCAPE '!'
+        ORDER BY publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectPopularTitles" resultType="com.slender.forumbackend.model.entity.article.content.Article">
+        SELECT article_id, author_id, title, summary, cover, status, visibility,
+               publish_time, revise_time, create_time, update_time
+        FROM articles
+        WHERE <include refid="visibleCondition"/>
+        ORDER BY publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countVisibleByTagId" resultType="long">
+        SELECT COUNT(*)
+        FROM articles a
+        JOIN article_tags t ON t.article_id = a.article_id
+        WHERE a.status = 'PUBLISHED'
+          AND a.visibility = 'PUBLIC'
+          AND t.tag_id = #{tagId}
+    </select>
+
+</mapper>

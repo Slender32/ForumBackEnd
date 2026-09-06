@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.ChatMessageMapper">
+    <select id="selectPage" resultType="com.slender.forumbackend.model.entity.conversation.ChatMessage">
+        SELECT message_id, conversation_id, sender_id, content, status, client_message_id, create_time
+        FROM messages
+        WHERE conversation_id = #{conversationId}
+          AND status = #{sentStatus}
+        <if test="cursorMessageId != -1 and cursorSendTime != null">
+            AND (create_time &lt; #{cursorSendTime}
+                 OR (create_time = #{cursorSendTime} AND message_id &lt; #{cursorMessageId}))
+        </if>
+        ORDER BY create_time DESC, message_id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

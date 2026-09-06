@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.ConversationReadMapper">
+    <insert id="upsert">
+        INSERT INTO conversation_reads(conversation_id, user_id, last_read_message_id, last_read_time)
+        VALUES (#{conversationId}, #{userId}, #{lastReadMessageId}, #{lastReadTime})
+        ON CONFLICT (conversation_id, user_id) DO UPDATE
+        SET last_read_message_id = GREATEST(
+                conversation_reads.last_read_message_id,
+                EXCLUDED.last_read_message_id
+            ),
+            last_read_time = EXCLUDED.last_read_time
+    </insert>
+</mapper>

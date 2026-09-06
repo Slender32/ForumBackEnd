@@ -3,14 +3,14 @@ package com.slender.forumbackend.security.filter
 import com.slender.forumbackend.constant.core.Message.Exception.EMAIL_OR_PASSWORD_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.REQUEST_READ_ERROR
 import com.slender.forumbackend.constant.core.Redis.Key.USER_BLOCK
-import com.slender.forumbackend.constant.core.URL.LOGIN
+import com.slender.forumbackend.constant.core.Http.LOGIN
 import com.slender.forumbackend.exception.BlockException
 import com.slender.forumbackend.exception.JsonParseException
 import com.slender.forumbackend.exception.LoginMisMatchException
 import com.slender.forumbackend.exception.RequestContentException
 import com.slender.forumbackend.library.AuthenticationFilter
-import com.slender.forumbackend.mapper.RbacRepository
-import com.slender.forumbackend.mapper.UserRepository
+import com.slender.forumbackend.repository.RbacRepository
+import com.slender.forumbackend.repository.user.UserReadRepository
 import com.slender.forumbackend.constant.enumeration.user.UserStatus.ACTIVE
 import com.slender.forumbackend.model.request.LoginRequest
 import com.slender.forumbackend.model.token.LoginToken
@@ -31,7 +31,7 @@ import java.io.IOException
 class PasswordFilter(
     private val json: Json,
     private val passwordEncoder: PasswordEncoder,
-    private val userRepository: UserRepository,
+    private val userReadRepository: UserReadRepository,
     private val rbacRepository: RbacRepository,
     private val redisTemplate: StringRedisTemplate,
     private val validator: Validator,
@@ -49,7 +49,7 @@ class PasswordFilter(
         val loginRequest = json.parse(request.inputStream, LoginRequest::class)
         validator.validate(loginRequest)
 
-        val user = userRepository.findByEmail(loginRequest.email)
+        val user = userReadRepository.findByEmail(loginRequest.email)
             ?: throw LoginMisMatchException(EMAIL_OR_PASSWORD_ERROR)
 
         if (user.status != ACTIVE) throw BlockException()
@@ -59,7 +59,7 @@ class PasswordFilter(
 
         redisTemplate.delete(USER_BLOCK + user.uid)
         val authorities = rbacRepository.findAuthoritiesByUserId(user.uid)
-        val statistics = userRepository.findStatisticsById(user.uid)
+        val statistics = userReadRepository.findStatisticsById(user.uid)
         val userData = user.toUserData(statistics)
         LoginToken(userData, authorities)
     }.onFailure {

@@ -1,8 +1,10 @@
 spring:
   config:
-    import: optional:file:.env[.properties]
+    import: optional:file:./.env[.properties]
   application:
     name: ForumBackEnd
+  profiles:
+    active: dev
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/test
@@ -10,13 +12,12 @@ spring:
     password: 123456
   data:
     redis:
-      password: admin
       lettuce:
         pool:
           max-wait: 1000
   mail:
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     port: 465
     host: smtp.qq.com
     default-encoding: UTF-8
@@ -25,11 +26,17 @@ spring:
         smtp:
           ssl:
             enable: true
+forum:
+  interaction:
+    sync-delay-ms: 60000
+  oss:
+    accessKeyId: ${OSS_ACCESS_KEY_ID}
+    accessKeySecret: ${OSS_ACCESS_KEY_SECRET}
 
 mybatis-plus:
   configuration:
     default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       id-type: auto

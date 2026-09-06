@@ -31,4 +31,12 @@ data class RefreshData(
         refreshTokenExpireAt = refreshToken.expireAt,
         userData = userData,
     )
+
+    fun toSessionData() = SessionData(
+        accessToken = accessToken,
+        refreshToken = refreshToken,
+        accessTokenExpireAt = accessTokenExpireAt,
+        refreshTokenExpireAt = refreshTokenExpireAt,
+        userData = userData,
+    )
 }

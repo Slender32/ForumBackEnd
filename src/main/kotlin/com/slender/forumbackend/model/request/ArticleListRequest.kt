@@ -20,6 +20,10 @@ data class ArticleListRequest(
     @field:Min(value = 1, message = "每页数量不能小于1")
     @field:Max(value = 10, message = "每页数量不能大于10")
     val size: Int = 10,
+
+    @field:Schema(description = "按标签筛选，不传表示不筛选", nullable = true)
+    @field:Min(value = 1, message = "标签ID不合法")
+    val tagId: Long? = null,
 ) {
     companion object {
         const val FIRST_CURSOR = -1L

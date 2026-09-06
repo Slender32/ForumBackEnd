@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.CommentMapper">
+
+    <sql id="commentColumns">
+        comment_id, article_id, author_id, root_comment_id, parent_comment_id,
+        reply_to_user_id, content, status, publish_time, create_time, update_time
+    </sql>
+
+    <sql id="visibleRootCondition">
+        c.status = #{normalStatus}
+        OR (
+            c.status = #{deletedStatus}
+            AND EXISTS (
+                SELECT 1 FROM comments child
+                WHERE child.root_comment_id = c.comment_id
+                  AND child.status = #{normalStatus}
+            )
+        )
+    </sql>
+
+    <sql id="visibleReplyCondition">
+        c.status = #{normalStatus}
+        OR (
+            c.status = #{deletedStatus}
+            AND EXISTS (
+                SELECT 1 FROM comments child
+                WHERE child.parent_comment_id = c.comment_id
+                  AND child.status = #{normalStatus}
+            )
+        )
+    </sql>
+
+    <select id="selectNormalRootByArticleIds" resultType="com.slender.forumbackend.model.entity.comment.content.Comment">
+        SELECT <include refid="commentColumns"/>
+        FROM comments
+        WHERE article_id IN
+        <foreach collection="articleIds" item="articleId" open="(" separator="," close=")">
+            #{articleId}
+        </foreach>
+          AND status = #{normalStatus}
+          AND root_comment_id = #{rootCommentId}
+        ORDER BY publish_time DESC
+    </select>
+
+    <select id="selectNormalById" resultType="com.slender.forumbackend.model.entity.comment.content.Comment">
+        SELECT <include refid="commentColumns"/>
+        FROM comments
+        WHERE comment_id = #{commentId}
+          AND status = #{normalStatus}
+    </select>
+
+    <select id="selectTopLevelComments" resultType="com.slender.forumbackend.model.entity.comment.content.Comment">
+        SELECT <include refid="commentColumns"/>
+        FROM comments c
+        WHERE c.article_id = #{articleId}
+          AND c.root_comment_id = #{rootCommentId}
+          AND (
+              <include refid="visibleRootCondition"/>
+          )
+        <if test="cursorCommentId != -1 and cursorPublishTime != null">
+            AND (c.publish_time &lt; #{cursorPublishTime}
+                 OR (c.publish_time = #{cursorPublishTime} AND c.comment_id &lt; #{cursorCommentId}))
+        </if>
+        <choose>
+            <when test="sort == 'Hot'">
+                ORDER BY (SELECT like_count FROM comment_stats WHERE comment_id = c.comment_id) DESC,
+                         c.publish_time DESC
+            </when>
+            <when test="sort == 'Oldest'">
+                ORDER BY c.publish_time ASC, c.comment_id ASC
+            </when>
+            <otherwise>
+                ORDER BY c.publish_time DESC, c.comment_id DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectRepliesByRootId" resultType="com.slender.forumbackend.model.entity.comment.content.Comment">
+        SELECT <include refid="commentColumns"/>
+        FROM comments c
+        WHERE c.root_comment_id = #{rootCommentId}
+          AND (
+              <include refid="visibleReplyCondition"/>
+          )
+        <if test="cursorReplyId != -1 and cursorPublishTime != null">
+            AND (c.publish_time &gt; #{cursorPublishTime}
+                 OR (c.publish_time = #{cursorPublishTime} AND c.comment_id &gt; #{cursorReplyId}))
+        </if>
+        ORDER BY c.publish_time ASC, c.comment_id ASC
+        LIMIT #{limit}
+    </select>
+
+    <select id="selectReplyPreviews" resultType="com.slender.forumbackend.model.entity.comment.content.Comment">
+        SELECT comment_id, article_id, author_id, root_comment_id, parent_comment_id,
+               reply_to_user_id, content, status, publish_time, create_time, update_time
+        FROM (
+            SELECT c.*,
+                   ROW_NUMBER() OVER (
+                       PARTITION BY c.root_comment_id
+                       ORDER BY c.publish_time ASC, c.comment_id ASC
+                   ) AS reply_rank
+            FROM comments c
+            WHERE c.root_comment_id IN
+            <foreach collection="rootCommentIds" item="rootCommentId" open="(" separator="," close=")">
+                #{rootCommentId}
+            </foreach>
+              AND (
+                  <include refid="visibleReplyCondition"/>
+              )
+        ) ranked
+        WHERE reply_rank &lt;= #{limit}
+        ORDER BY root_comment_id ASC, publish_time ASC, comment_id ASC
+    </select>
+
+    <select id="selectByAuthor" resultType="com.slender.forumbackend.model.entity.comment.content.Comment">
+        SELECT <include refid="commentColumns"/>
+        FROM comments
+        WHERE author_id = #{authorId}
+          AND status = #{normalStatus}
+        <if test="cursorPublishTime != null">
+            AND (publish_time &lt; #{cursorPublishTime}
+                 OR (publish_time = #{cursorPublishTime} AND comment_id &lt; #{cursorCommentId}))
+        </if>
+        ORDER BY publish_time DESC, comment_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="countNormalByArticleId" resultType="long">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE article_id = #{articleId}
+          AND status = #{normalStatus}
+    </select>
+
+    <select id="countNormalRepliesByRootId" resultType="long">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE root_comment_id = #{rootCommentId}
+          AND status = #{normalStatus}
+    </select>
+
+    <select id="countNormalRepliesByRootIds" resultType="map">
+        SELECT root_comment_id, COUNT(*) AS reply_count
+        FROM comments
+        WHERE root_comment_id IN
+        <foreach collection="rootCommentIds" item="rootCommentId" open="(" separator="," close=")">
+            #{rootCommentId}
+        </foreach>
+          AND status = #{normalStatus}
+        GROUP BY root_comment_id
+    </select>
+
+</mapper>

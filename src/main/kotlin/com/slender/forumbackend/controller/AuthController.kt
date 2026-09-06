@@ -9,8 +9,7 @@ import com.slender.forumbackend.model.data.Response.Companion.success
 import com.slender.forumbackend.model.data.UserData
 import com.slender.forumbackend.model.request.CaptchaRequest
 import com.slender.forumbackend.model.request.RegisterRequest
-import com.slender.forumbackend.service.CaptchaService
-import com.slender.forumbackend.service.UserService
+import com.slender.forumbackend.facade.AuthFacade
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -29,8 +28,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/auth")
 @Tag(name = "认证", description = "注册、验证码、登录、登出和Token刷新")
 class AuthController(
-    private val userService: UserService,
-    private val captchaService: CaptchaService,
+    private val authFacade: AuthFacade,
 ) {
     @PostMapping("/captcha")
     @Operation(summary = "发送注册验证码", description = "生成6位数字验证码，首位不会为0，并异步发送到目标邮箱。")
@@ -43,7 +41,7 @@ class AuthController(
     fun captcha(
         @RequestBody @Validated captchaRequest: CaptchaRequest,
     ): Response<Unit> {
-        captchaService.sendCaptcha(captchaRequest)
+        authFacade.sendCaptcha(captchaRequest)
         return success(CAPTCHA_SENT)
     }
 
@@ -59,7 +57,7 @@ class AuthController(
     fun register(
         @RequestBody @Validated registerRequest: RegisterRequest,
     ): Response<Unit> {
-        userService.register(registerRequest)
+        authFacade.register(registerRequest)
         return success(REGISTER_SUCCESS)
     }
 
@@ -82,7 +80,7 @@ class AuthController(
         @Parameter(hidden = true)
         @AuthenticationPrincipal uid: Long,
     ): Response<RefreshData> {
-        val data = userService.refresh(uid)
+        val data = authFacade.refresh(uid)
         return success(data)
     }
 
@@ -105,7 +103,7 @@ class AuthController(
         @Parameter(hidden = true)
         @AuthenticationPrincipal userCache: UserCache,
     ): Response<UserData> {
-        val data = userService.currentUser(userCache.uid)
+        val data = authFacade.currentUser(userCache.uid)
         return success(data)
     }
 }

@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: forum
+      POSTGRES_USER: slender
+      POSTGRES_PASSWORD: test-password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U slender -d forum"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.full-stack
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/forum
+      SPRING_DATASOURCE_USERNAME: slender
+      SPRING_DATASOURCE_PASSWORD: test-password
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      MAIL_USERNAME: full-stack@example.com
+      MAIL_PASSWORD: test-password
+      OSS_ACCESS_KEY_ID: test-access-key
+      OSS_ACCESS_KEY_SECRET: test-access-secret
+
+  nginx:
+    build:
+      context: ../ForumWebSite
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      app:
+        condition: service_started
+

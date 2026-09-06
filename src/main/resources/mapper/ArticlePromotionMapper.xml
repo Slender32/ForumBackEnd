@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.ArticlePromotionMapper">
+    <select id="selectByArticleIds" resultType="com.slender.forumbackend.model.entity.article.content.ArticlePromotion">
+        SELECT promotion_id, article_id, promoter_id, content, promote_time
+        FROM article_promotions
+        WHERE article_id IN
+        <foreach collection="articleIds" item="articleId" open="(" separator="," close=")">#{articleId}</foreach>
+        ORDER BY promote_time DESC
+    </select>
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.CommentReactionMapper">
+    <select id="selectByCommentIds" resultType="com.slender.forumbackend.model.entity.comment.relation.CommentReaction">
+        SELECT comment_id, user_id, emoji, create_time
+        FROM comment_reactions
+        WHERE comment_id IN
+        <foreach collection="commentIds" item="commentId" open="(" separator="," close=")">
+            #{commentId}
+        </foreach>
+        ORDER BY create_time ASC
+    </select>
+
+    <insert id="upsertReaction">
+        INSERT INTO comment_reactions(comment_id, user_id, emoji, create_time)
+        VALUES (#{commentId}, #{userId}, #{emoji}, #{createTime})
+        ON CONFLICT (comment_id, user_id) DO UPDATE
+        SET emoji = EXCLUDED.emoji,
+            create_time = EXCLUDED.create_time
+    </insert>
+</mapper>

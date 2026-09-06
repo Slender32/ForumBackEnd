@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.UserStatisticsMapper">
+
+    <update id="deductMoePoint">
+        UPDATE user_stats
+        SET moe_point = moe_point - #{amount}
+        WHERE user_id = #{userId} AND moe_point &gt;= #{amount}
+    </update>
+
+    <update id="addMoePoint">
+        UPDATE user_stats
+        SET moe_point = moe_point + #{amount}
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="addFollowCount">
+        UPDATE user_stats
+        SET follow_count = GREATEST(follow_count + #{delta}, 0)
+        WHERE user_id = #{userId}
+    </update>
+
+    <update id="addFanCount">
+        UPDATE user_stats
+        SET fan_count = GREATEST(fan_count + #{delta}, 0)
+        WHERE user_id = #{userId}
+    </update>
+
+</mapper>

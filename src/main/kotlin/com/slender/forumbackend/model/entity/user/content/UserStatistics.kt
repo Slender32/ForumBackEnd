@@ -8,16 +8,12 @@ import com.baomidou.mybatisplus.annotation.TableName
 data class UserStatistics(
     @TableId(type = INPUT)
     val userId: Long,
-    val fanCount: Int,
-    val followCount: Int,
-    val publishedArticleCount: Int,
-    val likedCount: Int,
-){
-    constructor(uid: Long) : this(
-        uid,
-        0,
-        0,
-        0,
-        0
-    )
+    val fanCount: Int = 0,
+    val followCount: Int = 0,
+    val publishedArticleCount: Int = 0,
+    val likedCount: Int = 0,
+    val moePoint: Int = 0,
+    val promotedCount: Int = 0,
+) {
+    constructor(uid: Long) : this(userId = uid)
 }

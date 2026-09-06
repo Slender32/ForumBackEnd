@@ -9,5 +9,6 @@ data class Tag(
     @TableId
     val tid: Long = 0,
     val name: String,
+    val color: Int = -1,
     val createTime: LocalDateTime,
 )

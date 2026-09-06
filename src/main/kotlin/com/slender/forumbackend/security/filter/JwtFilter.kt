@@ -4,7 +4,8 @@ import com.slender.forumbackend.constant.core.Jwt.ACCESS_KEY
 import com.slender.forumbackend.constant.core.Jwt.REFRESH_KEY
 import com.slender.forumbackend.constant.core.Redis.Key.USER_BLOCK
 import com.slender.forumbackend.constant.core.Redis.Key.USER_LOGIN_CACHE
-import com.slender.forumbackend.constant.core.URL.REFRESH
+import com.slender.forumbackend.constant.core.Http.REFRESH
+import com.slender.forumbackend.constant.enumeration.config.TokenPolicy
 import com.slender.forumbackend.constant.enumeration.error.Error.*
 import com.slender.forumbackend.constant.field.UserField.UID
 import com.slender.forumbackend.constant.util.JwtToolkit.parseToken
@@ -12,7 +13,7 @@ import com.slender.forumbackend.exception.BlockException
 import com.slender.forumbackend.exception.LoginExpiredException
 import com.slender.forumbackend.exception.TokenNotFoundException
 import com.slender.forumbackend.model.error.ExceptionAdvice
-import com.slender.forumbackend.library.RequireToken.requireToken
+import com.slender.forumbackend.library.RequireToken.tokenPolicy
 import com.slender.forumbackend.model.cache.LoginDataCache
 import com.slender.forumbackend.model.token.AuthenticatedToken
 import com.slender.forumbackend.model.token.RefreshToken
@@ -48,8 +49,8 @@ class JwtFilter(
         filterChain: FilterChain
     ) {
         val isRefreshRequest = pathMatcher.match(REFRESH, request.requestURI)
-        val requireToken = requireToken(request.requestURI, pathMatcher)
-        if (!requireToken && !isRefreshRequest) {
+        val policy = tokenPolicy(request.requestURI, request.method, pathMatcher)
+        if (policy == TokenPolicy.None && !isRefreshRequest) {
             filterChain.doFilter(request, response)
             return
         }
@@ -69,6 +70,10 @@ class JwtFilter(
                 AuthenticatedToken(loginCache.toUserCache())
             }
         }.onFailure {
+            if (policy == TokenPolicy.Optional && !isRefreshRequest) {
+                filterChain.doFilter(request, response)
+                return@onFailure
+            }
             val error = it.toError(isRefreshRequest)
             writer.write(ExceptionAdvice(error), response)
         }.onSuccess {
