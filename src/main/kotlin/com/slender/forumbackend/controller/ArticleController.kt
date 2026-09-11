@@ -10,48 +10,152 @@ import com.slender.forumbackend.model.data.article.ArticlePublishData
 import com.slender.forumbackend.model.data.article.ArticleRewardData
 import com.slender.forumbackend.model.data.article.SearchSuggestionData
 import com.slender.forumbackend.model.request.ArticleListRequest
+import com.slender.forumbackend.model.request.ArticlePromotionRequest
 import com.slender.forumbackend.model.request.ArticlePublishRequest
 import com.slender.forumbackend.model.request.ArticleReactionRequest
 import com.slender.forumbackend.model.request.ArticleRewardRequest
 import com.slender.forumbackend.model.request.ArticleSearchRequest
+import com.slender.forumbackend.model.request.ArticleUpdateRequest
 import com.slender.forumbackend.model.request.ReportRequest
 import com.slender.forumbackend.model.request.SearchSuggestionRequest
-import jakarta.servlet.http.HttpServletRequest
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.servlet.http.HttpServletRequest
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.ModelAttribute
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/article")
-@Tag(name = "Article", description = "Article feed, content, publish, and interaction APIs")
+@Tag(
+    name = "Article",
+    description = "Article feed, content, publish, and interaction APIs",
+)
 class ArticleController(
     private val articleFacade: ArticleFacade,
 ) {
 
-    @GetMapping("/list")
-    @Operation(
-        summary = "Get article list",
-        description = "Fetch public published articles by cursor pagination. First request uses cursorArticleId=-1 without cursorPublishTime. Supports anonymous access."
-    )
+    @PutMapping("/{aid}")
+    fun update(
+        @PathVariable
+        aid: Long,
+
+        @RequestBody
+        @Validated
+        request: ArticleUpdateRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<Unit> {
+        articleFacade.update(aid, userCache.uid, userCache.authorities, request)
+        return success()
+    }
+
+    @DeleteMapping("/{aid}")
+    fun delete(
+        @PathVariable
+        aid: Long,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<Unit> {
+        articleFacade.delete(aid, userCache.uid, userCache.authorities)
+        return success()
+    }
+
+    @PostMapping("/{aid}/promotion")
+    @Operation(summary = "推荐文章", description = "普通登录用户可为文章添加推荐内容。")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "Success"),
             ApiResponse(responseCode = "400", description = "1008 Invalid request"),
+            ApiResponse(responseCode = "401", description = "Token missing or expired"),
             ApiResponse(responseCode = "404", description = "1201 Article not found"),
         ]
+    )
+    @SecurityRequirement(name = "bearerAuth")
+    fun addPromotion(
+        @PathVariable
+        aid: Long,
+
+        @RequestBody
+        @Validated
+        request: ArticlePromotionRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<Unit> {
+        articleFacade.addPromotion(aid, userCache.uid, request)
+        return success()
+    }
+
+    @DeleteMapping("/promotion/{pid}")
+    fun deletePromotion(
+        @PathVariable
+        pid: Long,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<Unit> {
+        articleFacade.deletePromotion(pid, userCache.authorities)
+        return success()
+    }
+
+    @PostMapping("/{aid}/tags/{tid}")
+    fun restoreTag(
+        @PathVariable
+        aid: Long,
+
+        @PathVariable
+        tid: Long,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<Unit> {
+        articleFacade.restoreTag(aid, tid, userCache.uid, userCache.authorities)
+        return success()
+    }
+
+    @DeleteMapping("/{aid}/tags/{tid}")
+    fun deleteTag(
+        @PathVariable
+        aid: Long,
+
+        @PathVariable
+        tid: Long,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<Unit> {
+        articleFacade.deleteTag(aid, tid, userCache.uid, userCache.authorities)
+        return success()
+    }
+
+    @GetMapping("/list")
+    @Operation(
+        summary = "Get article list",
+        description = "Fetch public published articles by cursor pagination. First request uses cursorArticleId=-1 without cursorPublishTime. Supports anonymous access.",
+    )
+    @ApiResponses(
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Success"),
+                ApiResponse(responseCode = "400", description = "1008 Invalid request"),
+                ApiResponse(responseCode = "404", description = "1201 Article not found"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun list(
@@ -61,22 +165,20 @@ class ArticleController(
         articleListRequest: ArticleListRequest,
 
         @AuthenticationPrincipal
-        userCache: UserCache?,
+        userCache: UserCache?
     ): Response<ArticleListData> {
         val data = articleFacade.list(articleListRequest, userCache?.uid)
         return success(data)
     }
 
     @GetMapping("/search")
-    @Operation(
-        summary = "搜索文章",
-        description = "按标题和摘要 ILIKE 搜索已发布公开文章，按时间倒序分页。支持匿名访问。"
-    )
+    @Operation(summary = "搜索文章", description = "按标题和摘要 ILIKE 搜索已发布公开文章，按时间倒序分页。支持匿名访问。")
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Success"),
-            ApiResponse(responseCode = "400", description = "1008 Invalid request"),
-        ]
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Success"),
+                ApiResponse(responseCode = "400", description = "1008 Invalid request"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun search(
@@ -93,14 +195,20 @@ class ArticleController(
     }
 
     @GetMapping("/search/suggestion")
-    @Operation(summary = "搜索建议", description = "keyword 为空返回热门词。支持匿名访问。")
-    @ApiResponse(responseCode = "200", description = "Success")
+    @Operation(
+        summary = "搜索建议",
+        description = "keyword 为空返回热门词。支持匿名访问。"
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "Success"
+    )
     @SecurityRequirement(name = "bearerAuth")
     fun suggestions(
         @ParameterObject
         @ModelAttribute
         @Validated
-        request: SearchSuggestionRequest,
+        request: SearchSuggestionRequest
     ): Response<SearchSuggestionData> {
         return success(articleFacade.suggestions(request))
     }
@@ -108,19 +216,20 @@ class ArticleController(
     @GetMapping("/{aid}")
     @Operation(
         summary = "Get article detail",
-        description = "Return full article detail including content, author, tags, statistics, and reactions. Supports anonymous access."
+        description =
+            "Return full article detail including content, author, tags, statistics, and reactions. Supports anonymous access.",
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Success"),
-            ApiResponse(responseCode = "404", description = "1201 Article not found"),
-        ]
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Success"),
+                ApiResponse(responseCode = "404", description = "1201 Article not found"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun content(
         @Parameter(description = "Article id")
-        @PathVariable
-        aid: Long,
+        @PathVariable aid: Long,
 
         @AuthenticationPrincipal
         userCache: UserCache?,
@@ -134,15 +243,17 @@ class ArticleController(
     @PostMapping("/publish")
     @Operation(
         summary = "Publish article",
-        description = "Create a public published article for the current user. Missing or blank summary is generated from Markdown content. Tags are reused by identical name and color."
+        description =
+            "Create a public published article for the current user. Missing or blank summary is generated from Markdown content. Tags are reused by identical name and color.",
     )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Published successfully"),
-            ApiResponse(responseCode = "400", description = "1008 Invalid request"),
-            ApiResponse(responseCode = "401", description = "Token missing or expired"),
-            ApiResponse(responseCode = "500", description = "1500 Internal error"),
-        ]
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Published successfully"),
+                ApiResponse(responseCode = "400", description = "1008 Invalid request"),
+                ApiResponse(responseCode = "401", description = "Token missing or expired"),
+                ApiResponse(responseCode = "500", description = "1500 Internal error"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun publish(
@@ -158,13 +269,17 @@ class ArticleController(
     }
 
     @PostMapping("/{aid}/like")
-    @Operation(summary = "Toggle article like", description = "Toggle current user's like status for an article.")
+    @Operation(
+        summary = "Toggle article like",
+        description = "Toggle current user's like status for an article.",
+    )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Success"),
-            ApiResponse(responseCode = "401", description = "Token missing or expired"),
-            ApiResponse(responseCode = "404", description = "1201 Article not found"),
-        ]
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Success"),
+                ApiResponse(responseCode = "401", description = "Token missing or expired"),
+                ApiResponse(responseCode = "404", description = "1201 Article not found"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun toggleLike(
@@ -180,14 +295,18 @@ class ArticleController(
     }
 
     @PostMapping("/{aid}/reaction")
-    @Operation(summary = "React to article", description = "Set current user's emoji reaction for an article.")
+    @Operation(
+        summary = "React to article",
+        description = "Add an emoji reaction. The same user may add multiple different emojis, but each emoji only once.",
+    )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Success"),
-            ApiResponse(responseCode = "400", description = "1008 Invalid request"),
-            ApiResponse(responseCode = "401", description = "Token missing or expired"),
-            ApiResponse(responseCode = "404", description = "1201 Article not found"),
-        ]
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Success"),
+                ApiResponse(responseCode = "400", description = "1008 Invalid request"),
+                ApiResponse(responseCode = "401", description = "Token missing or expired"),
+                ApiResponse(responseCode = "404", description = "1201 Article not found"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun react(
@@ -206,16 +325,41 @@ class ArticleController(
         return success()
     }
 
+    @DeleteMapping("/{aid}/reaction")
+    fun deleteReaction(
+        @PathVariable
+        @Parameter(description = "Article id")
+        aid: Long,
+
+        @RequestBody
+        @Validated
+        request: ArticleReactionRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<Unit> {
+        articleFacade.deleteReaction(aid, userCache.uid, request.emoji)
+        return success()
+    }
+
     @PostMapping("/{aid}/reward")
-    @Operation(summary = "打赏文章", description = "同一用户对同一篇文章只能打赏一次。需要登录。")
+    @Operation(
+        summary = "打赏文章",
+        description = "同一用户对同一篇文章只能打赏一次。需要登录。"
+    )
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Success"),
-            ApiResponse(responseCode = "400", description = "1008/1204/1205 Invalid amount, already rewarded or not enough moe point"),
-            ApiResponse(responseCode = "401", description = "Token missing or expired"),
-            ApiResponse(responseCode = "403", description = "1009 Cannot reward own article"),
-            ApiResponse(responseCode = "404", description = "1201 Article not found"),
-        ]
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Success"),
+                ApiResponse(
+                    responseCode = "400",
+                    description =
+                        "1008/1204/1205 Invalid amount, already rewarded or not enough moe point",
+                ),
+                ApiResponse(responseCode = "401", description = "Token missing or expired"),
+                ApiResponse(responseCode = "403", description = "1009 Cannot reward own article"),
+                ApiResponse(responseCode = "404", description = "1201 Article not found"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun reward(
@@ -237,13 +381,14 @@ class ArticleController(
     @PostMapping("/{aid}/report")
     @Operation(summary = "举报文章", description = "同一人对同一文章只能举报一次。需要登录。")
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Success"),
-            ApiResponse(responseCode = "400", description = "1008/1602 Invalid request"),
-            ApiResponse(responseCode = "401", description = "Token missing or expired"),
-            ApiResponse(responseCode = "404", description = "1201 Article not found"),
-            ApiResponse(responseCode = "409", description = "1601 Duplicated report"),
-        ]
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Success"),
+                ApiResponse(responseCode = "400", description = "1008/1602 Invalid request"),
+                ApiResponse(responseCode = "401", description = "Token missing or expired"),
+                ApiResponse(responseCode = "404", description = "1201 Article not found"),
+                ApiResponse(responseCode = "409", description = "1601 Duplicated report"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun report(
@@ -265,11 +410,12 @@ class ArticleController(
     @PostMapping("/{aid}/favorite")
     @Operation(summary = "切换收藏", description = "已收藏则取消，未收藏则收藏。需要登录。")
     @ApiResponses(
-        value = [
-            ApiResponse(responseCode = "200", description = "Success"),
-            ApiResponse(responseCode = "401", description = "Token missing or expired"),
-            ApiResponse(responseCode = "404", description = "1201 Article not found"),
-        ]
+        value =
+            [
+                ApiResponse(responseCode = "200", description = "Success"),
+                ApiResponse(responseCode = "401", description = "Token missing or expired"),
+                ApiResponse(responseCode = "404", description = "1201 Article not found"),
+            ]
     )
     @SecurityRequirement(name = "bearerAuth")
     fun toggleFavorite(

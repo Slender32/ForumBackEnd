@@ -8,4 +8,5 @@ data class ArticleTag(
     val articleId: Long = 0,
     val tagId: Long = 0,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

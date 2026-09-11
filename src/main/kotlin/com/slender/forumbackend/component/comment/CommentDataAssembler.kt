@@ -4,10 +4,7 @@ import com.slender.forumbackend.constant.enumeration.comment.CommentStatus.Delet
 import com.slender.forumbackend.exception.CommentNotFoundException
 import com.slender.forumbackend.library.timestamp
 import com.slender.forumbackend.model.data.comment.CommentData
-import com.slender.forumbackend.model.data.comment.CommentReactionData
 import com.slender.forumbackend.model.entity.comment.content.Comment
-import com.slender.forumbackend.model.entity.comment.relation.CommentReaction
-import com.slender.forumbackend.model.entity.user.content.User
 import com.slender.forumbackend.repository.comment.CommentInteractionRepository
 import com.slender.forumbackend.repository.comment.CommentQueryRepository
 import com.slender.forumbackend.repository.comment.CommentStatisticRepository
@@ -55,10 +52,6 @@ class CommentDataAssembler(
         val likedCommentIds = currentUserId?.let {
             commentInteractionRepository.findLikesByUserAndCommentIds(it, commentIds)
         } ?: emptySet()
-        val reactionsByCommentId = commentInteractionRepository.findReactionsByCommentIds(commentIds)
-            .groupBy { it.commentId }
-        val reactorIds = reactionsByCommentId.values.flatten().map { it.userId }.toSet()
-        val reactors = userReadRepository.findByIds(reactorIds).associateBy { it.uid }
 
         fun toData(comment: Comment, nestedReplies: List<CommentData>): CommentData {
             val author = authors[comment.authorId] ?: throw CommentNotFoundException()
@@ -80,7 +73,6 @@ class CommentDataAssembler(
                 replyCount = if (comment.rootCommentId == ROOT_NONE) {
                     replyCountsByRoot[comment.commentId] ?: 0
                 } else 0,
-                reactions = toReactionData(reactionsByCommentId[comment.commentId].orEmpty(), reactors, currentUserId),
                 isLiked = likedCommentIds.contains(comment.commentId),
                 replies = nestedReplies,
             )
@@ -94,34 +86,11 @@ class CommentDataAssembler(
         }
     }
 
-    private fun toReactionData(
-        reactions: List<CommentReaction>,
-        reactors: Map<Long, User>,
-        currentUserId: Long?,
-    ): List<CommentReactionData> =
-        reactions
-            .groupBy { it.emoji }
-            .entries
-            .sortedWith(compareByDescending<Map.Entry<String, List<CommentReaction>>> { it.value.size }
-                .thenBy { it.key })
-            .map { (emoji, items) ->
-                CommentReactionData(
-                    emoji = emoji,
-                    count = items.size,
-                    reactors = items
-                        .sortedByDescending { it.createTime }
-                        .mapNotNull { reactors[it.userId]?.avatar }
-                        .take(REACTION_AVATAR_LIMIT),
-                    isReact = currentUserId?.let { uid -> items.any { it.userId == uid } } ?: false,
-                )
-            }
-
     private fun Long.toSentinel(): Long = if (this == ROOT_NONE) -1L else this
 
     private companion object {
         const val DELETED_COMMENT_CONTENT = "该评论已删除"
         const val ROOT_NONE = 0L
         const val REPLY_PREVIEW_LIMIT = 3
-        const val REACTION_AVATAR_LIMIT = 3
     }
 }

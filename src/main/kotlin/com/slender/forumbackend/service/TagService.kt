@@ -1,18 +1,20 @@
 package com.slender.forumbackend.service
 
 import com.slender.forumbackend.exception.ArticleTagInvalidException
-import com.slender.forumbackend.repository.article.ArticleTagRepository
-import com.slender.forumbackend.repository.TagRepository
 import com.slender.forumbackend.model.data.article.ArticleTagData
 import com.slender.forumbackend.model.data.article.TagDetailData
 import com.slender.forumbackend.model.data.article.TagListData
 import com.slender.forumbackend.model.request.TagListRequest
+import com.slender.forumbackend.repository.TagRepository
+import com.slender.forumbackend.repository.article.ArticleTagRepository
+import com.slender.forumbackend.repository.user.UserTagRepository
 import org.springframework.stereotype.Service
 
 @Service
 class TagService(
     private val tagRepository: TagRepository,
     private val articleTagRepository: ArticleTagRepository,
+    private val userTagRepository: UserTagRepository,
 ) {
 
     fun detail(tagId: Long): TagDetailData {
@@ -28,11 +30,15 @@ class TagService(
 
     fun list(request: TagListRequest): TagListData {
         val keyword = request.keyword.trim()
-        val tags = if (keyword.isEmpty()) {
-            tagRepository.findPopular(request.size)
-        } else {
-            tagRepository.findByNamePrefix(keyword, request.size)
-        }
+        val tags = if (keyword.isEmpty()) tagRepository.findPopular(request.size)
+            else tagRepository.findByNamePrefix(keyword, request.size)
         return TagListData(items = tags.map { ArticleTagData(it.tid, it.name, it.color) })
+    }
+
+    fun delete(tagId: Long) {
+        val now = java.time.LocalDateTime.now()
+        if (!tagRepository.markDeleted(tagId, now)) return
+        articleTagRepository.markDeletedByTag(tagId, now)
+        userTagRepository.markDeletedByTag(tagId, now)
     }
 }

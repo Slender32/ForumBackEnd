@@ -13,12 +13,15 @@ import com.slender.forumbackend.constant.core.Http.LOGOUT
 import com.slender.forumbackend.constant.core.Http.Method.ALL_METHODS
 import com.slender.forumbackend.constant.core.Http.Method.DELETE
 import com.slender.forumbackend.constant.core.Http.Method.GET
+import com.slender.forumbackend.constant.core.Http.Method.PUT
 import com.slender.forumbackend.constant.core.Http.NO_AUTH_PATHS
 import com.slender.forumbackend.constant.core.Http.TAG_LIST
 import com.slender.forumbackend.constant.core.Http.TAG_WILDCARD
 import com.slender.forumbackend.constant.core.Http.USERS_ARTICLE
 import com.slender.forumbackend.constant.core.Http.USERS_COMMENT
 import com.slender.forumbackend.constant.core.Http.USERS_PROFILE
+import com.slender.forumbackend.constant.enumeration.config.TokenPolicy.Optional
+import com.slender.forumbackend.constant.enumeration.config.TokenPolicy.Required
 import com.slender.forumbackend.library.*
 import com.slender.forumbackend.library.RequireToken.methodPolicy
 import com.slender.forumbackend.library.RequireToken.notRequireToken
@@ -29,8 +32,6 @@ import com.slender.forumbackend.security.handler.AccessRefuseHandler
 import com.slender.forumbackend.security.handler.ExceptionHandler
 import com.slender.forumbackend.security.handler.SignOutHandler
 import com.slender.forumbackend.security.handler.SignOutSuccessHandler
-import com.slender.forumbackend.constant.enumeration.config.TokenPolicy.Optional
-import com.slender.forumbackend.constant.enumeration.config.TokenPolicy.Required
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -49,20 +50,26 @@ class Security {
     init {
         notRequireToken(NO_AUTH_PATHS)
         requireToken(AUTH_PATHS)
-        methodPolicy(GET, Optional, arrayOf(
-            ARTICLE_LIST,
-            ARTICLE_SEARCH,
-            ARTICLE_SEARCH_SUGGESTION,
-            ARTICLE_DETAIL,
-            ARTICLE_COMMENT,
-            COMMENT_REPLY,
-            USERS_PROFILE,
-            USERS_ARTICLE,
-            USERS_COMMENT,
-            TAG_LIST,
-            TAG_WILDCARD,
-            HOME_CAROUSEL,
-        ))
+        methodPolicy(
+            GET,
+            Optional,
+            arrayOf(
+                ARTICLE_LIST,
+                ARTICLE_SEARCH,
+                ARTICLE_SEARCH_SUGGESTION,
+                ARTICLE_DETAIL,
+                ARTICLE_COMMENT,
+                COMMENT_REPLY,
+                USERS_PROFILE,
+                USERS_ARTICLE,
+                USERS_COMMENT,
+                TAG_LIST,
+                TAG_WILDCARD,
+                HOME_CAROUSEL,
+            ),
+        )
+        methodPolicy(PUT, ARTICLE_DETAIL, Required)
+        methodPolicy(DELETE, ARTICLE_DETAIL, Required)
         methodPolicy(DELETE, COMMENT_WILDCARD, Required)
     }
 
@@ -75,38 +82,37 @@ class Security {
         signOutSuccessHandler: SignOutSuccessHandler,
         exceptionHandler: ExceptionHandler,
         accessRefuseHandler: AccessRefuseHandler,
-    ): SecurityFilterChain = http.configure {
-        corsConfiguration {
-            allowedMethods = ALL_METHODS.asList()
-            allowCredentials = false
-            allowedOrigins = listOf("*")
-            maxAge = 3600L
+    ): SecurityFilterChain =
+        http.configure {
+            corsConfiguration {
+                allowedMethods = ALL_METHODS.asList()
+                allowCredentials = false
+                allowedOrigins = listOf("*")
+                maxAge = 3600L
+            }
+
+            disableCsrf()
+            noSession()
+            noAuthentication(*NO_AUTH_PATHS)
+
+            appendFilter {
+                at<UsernamePasswordAuthenticationFilter>(passwordFilter)
+                before<LogoutFilter>(jwtFilter)
+            }
+
+            signOut {
+                logoutUrl(LOGOUT)
+                addLogoutHandler(signOutHandler)
+                logoutSuccessHandler(signOutSuccessHandler)
+            }
+
+            exceptionHandler {
+                authenticationEntryPoint(exceptionHandler)
+                accessDeniedHandler(accessRefuseHandler)
+            }
         }
 
-        disableCsrf()
-        noSession()
-        noAuthentication(*NO_AUTH_PATHS)
+    @Bean fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
-        appendFilter {
-            at<UsernamePasswordAuthenticationFilter>(passwordFilter)
-            before<LogoutFilter>(jwtFilter)
-        }
-
-        signOut {
-            logoutUrl(LOGOUT)
-            addLogoutHandler(signOutHandler)
-            logoutSuccessHandler(signOutSuccessHandler)
-        }
-
-        exceptionHandler {
-            authenticationEntryPoint(exceptionHandler)
-            accessDeniedHandler(accessRefuseHandler)
-        }
-    }
-
-    @Bean
-    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
-
-    @Bean
-    fun pathMatcher(): PathMatcher = AntPathMatcher()
+    @Bean fun pathMatcher(): PathMatcher = AntPathMatcher()
 }

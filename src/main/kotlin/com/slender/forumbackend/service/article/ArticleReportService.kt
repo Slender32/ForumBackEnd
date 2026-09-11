@@ -2,7 +2,7 @@ package com.slender.forumbackend.service.article
 
 import com.slender.forumbackend.component.common.ReportWriter
 import com.slender.forumbackend.exception.ReportSelfException
-import com.slender.forumbackend.model.entity.report.ReportTargetType.Article
+import com.slender.forumbackend.constant.enumeration.report.ReportTargetType.Article
 import com.slender.forumbackend.model.request.ReportRequest
 import com.slender.forumbackend.repository.article.ArticleQueryRepository
 import org.springframework.stereotype.Service

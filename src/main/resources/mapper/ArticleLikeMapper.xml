@@ -2,16 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.slender.forumbackend.mapper.ArticleLikeMapper">
     <select id="selectByArticleAndUser" resultType="com.slender.forumbackend.model.entity.article.relation.ArticleLike">
-        SELECT article_id, user_id, create_time FROM article_likes
-        WHERE article_id = #{articleId} AND user_id = #{userId}
+        SELECT article_id, user_id, create_time, deleted_at FROM article_likes
+        WHERE article_id = #{articleId} AND user_id = #{userId} AND deleted_at IS NULL
     </select>
     <select id="selectArticleIdsByUser" resultType="long">
         SELECT article_id FROM article_likes
-        WHERE user_id = #{userId}
+        WHERE user_id = #{userId} AND deleted_at IS NULL
           AND article_id IN
           <foreach collection="articleIds" item="articleId" open="(" separator="," close=")">#{articleId}</foreach>
     </select>
-    <delete id="deleteByArticleAndUser">
-        DELETE FROM article_likes WHERE article_id = #{articleId} AND user_id = #{userId}
-    </delete>
+    <update id="deleteByArticleAndUser">
+        UPDATE article_likes
+        SET deleted_at = CURRENT_TIMESTAMP
+        WHERE article_id = #{articleId} AND user_id = #{userId} AND deleted_at IS NULL
+    </update>
+    <insert id="upsertLike">
+        INSERT INTO article_likes(article_id, user_id, create_time, deleted_at)
+        VALUES (#{articleId}, #{userId}, #{createTime}, NULL)
+        ON CONFLICT (article_id, user_id) DO UPDATE
+        SET create_time = EXCLUDED.create_time,
+            deleted_at = NULL
+    </insert>
 </mapper>

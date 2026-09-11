@@ -30,6 +30,7 @@ object Http {
     const val ARTICLE_LIST = "/article/list"
     const val ARTICLE_DETAIL = "/article/*"
     const val ARTICLE_PUBLISH = "/article/publish"
+    const val ARTICLE_PROMOTION = "/article/*/promotion"
     const val ARTICLE_LIKE = "/article/*/like"
     const val ARTICLE_REACTION = "/article/*/reaction"
     const val ARTICLE_REWARD = "/article/*/reward"
@@ -42,7 +43,6 @@ object Http {
     const val COMMENT_WILDCARD = "/comment/*"
     const val COMMENT_LIKE = "/comment/*/like"
     const val COMMENT_REPLY = "/comment/*/reply"
-    const val COMMENT_REACTION = "/comment/*/reaction"
     const val COMMENT_REPORT = "/comment/*/report"
 
     const val USERS_PROFILE = "/users/*/profile"
@@ -104,13 +104,13 @@ object Http {
 
     val AUTH_PATHS = arrayOf(
         ARTICLE_PUBLISH,
+        ARTICLE_PROMOTION,
         ARTICLE_LIKE,
         ARTICLE_REACTION,
         ARTICLE_REWARD,
         ARTICLE_REPORT,
         COMMENT_LIKE,
         COMMENT_REPLY,
-        COMMENT_REACTION,
         COMMENT_REPORT,
         ARTICLE_COMMENT,
         FILES_IMAGE_UPLOAD,

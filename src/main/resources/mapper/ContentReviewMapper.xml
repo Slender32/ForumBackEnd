@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.ContentReviewMapper">
+
+    <select id="selectForUpdate" resultType="com.slender.forumbackend.model.entity.governance.ContentReviewRecord">
+        SELECT review_id, resource_type, resource_id, author_id, content, payload_json,
+               status, reviewer_id, review_note, create_time, update_time
+        FROM content_reviews
+        WHERE review_id = #{id}
+        FOR UPDATE
+    </select>
+</mapper>

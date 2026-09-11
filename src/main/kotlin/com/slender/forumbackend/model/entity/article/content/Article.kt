@@ -22,6 +22,7 @@ data class Article(
     val reviseTime: LocalDateTime,
     val createTime: LocalDateTime,
     val updateTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 ) {
     fun toCursorData() = ArticleCursorData(
         articleId = articleId,

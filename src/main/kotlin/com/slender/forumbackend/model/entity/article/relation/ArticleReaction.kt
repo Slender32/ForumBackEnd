@@ -9,4 +9,5 @@ data class ArticleReaction(
     val userId: Long,
     val emoji: String,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

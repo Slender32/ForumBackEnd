@@ -11,4 +11,5 @@ data class Tag(
     val name: String,
     val color: Int = -1,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

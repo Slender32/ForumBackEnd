@@ -26,16 +26,15 @@ class UserReadRepository(
     fun findByEmail(email: String): User? =
         userMapper.selectOne(QueryWrapper<User>().eq(EMAIL, email))
 
-    fun findStatisticsById(uid: Long): UserStatistics? =
-        userStatisticsMapper.selectById(uid)
+    fun findStatisticsById(uid: Long): UserStatistics? = userStatisticsMapper.selectById(uid)
 
     fun findByIds(userIds: Collection<Long>): List<User> =
-        userIds.distinct().takeIf { it.isNotEmpty() }?.let { userMapper.selectByIds(it) } ?: emptyList()
+        userIds.distinct().takeIf { it.isNotEmpty() }?.let { userMapper.selectByIds(it) }
+            ?: emptyList()
 
     fun findById(uid: Long): User? = userMapper.selectById(uid)
 
-    fun findByIdOrThrow(uid: Long): User =
-        findById(uid) ?: throw UserNotFoundException()
+    fun findByIdOrThrow(uid: Long): User = findById(uid) ?: throw UserNotFoundException()
 
     fun findActiveByIdOrThrow(uid: Long): User =
         findByIdOrThrow(uid).also { if (it.status != ACTIVE) throw BlockException() }
@@ -48,5 +47,38 @@ class UserReadRepository(
             QueryWrapper<UserFollow>()
                 .eq(FOLLOWER_ID, followerId)
                 .eq(FOLLOWEE_ID, followeeId)
+                .isNull("deleted_at")
+        )
+
+    fun listFollowingIds(uid: Long, offset: Int, limit: Int) =
+        userFollowMapper
+            .selectList(
+                QueryWrapper<UserFollow>()
+                    .eq(FOLLOWER_ID, uid)
+                    .isNull("deleted_at")
+                    .orderByDesc("create_time")
+                    .last("LIMIT $limit OFFSET $offset")
+            )
+            .map { it.followeeId }
+
+    fun countFollowing(uid: Long): Long =
+        userFollowMapper.selectCount(
+            QueryWrapper<UserFollow>().eq(FOLLOWER_ID, uid).isNull("deleted_at")
+        )
+
+    fun listFollowerIds(uid: Long, offset: Int, limit: Int) =
+        userFollowMapper
+            .selectList(
+                QueryWrapper<UserFollow>()
+                    .eq(FOLLOWEE_ID, uid)
+                    .isNull("deleted_at")
+                    .orderByDesc("create_time")
+                    .last("LIMIT $limit OFFSET $offset")
+            )
+            .map { it.followerId }
+
+    fun countFollowers(uid: Long): Long =
+        userFollowMapper.selectCount(
+            QueryWrapper<UserFollow>().eq(FOLLOWEE_ID, uid).isNull("deleted_at")
         )
 }

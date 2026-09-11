@@ -1,48 +1,36 @@
 package com.slender.forumbackend.repository.comment
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.slender.forumbackend.mapper.CommentLikeMapper
-import com.slender.forumbackend.mapper.CommentReactionMapper
 import com.slender.forumbackend.mapper.CommentStatisticsMapper
 import com.slender.forumbackend.model.entity.comment.content.CommentStatistics
 import com.slender.forumbackend.model.entity.comment.relation.CommentLike
-import com.slender.forumbackend.model.entity.comment.relation.CommentReaction
-import com.slender.forumbackend.component.common.InteractionPendingSyncExecutor.LikeStatisticRepository
-import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import org.springframework.stereotype.Repository
 
 @Repository
 class CommentInteractionRepository(
-    private val commentQueryRepository: CommentQueryRepository,
     private val commentStatisticsMapper: CommentStatisticsMapper,
     private val commentLikeMapper: CommentLikeMapper,
-    private val commentReactionMapper: CommentReactionMapper,
-) : LikeStatisticRepository {
-    override fun targetExists(targetId: Long): Boolean =
-        commentQueryRepository.targetExists(targetId)
-
+) {
     fun findLike(commentId: Long, userId: Long): CommentLike? =
         commentLikeMapper.selectByCommentAndUser(commentId, userId)
 
-    override fun hasLike(targetId: Long, userId: Long): Boolean =
-        findLike(targetId, userId) != null
+    fun hasLike(commentId: Long, userId: Long): Boolean = findLike(commentId, userId) != null
 
-    override fun insertLike(targetId: Long, userId: Long, createTime: LocalDateTime) {
-        commentLikeMapper.insert(
-            CommentLike(
-                commentId = targetId,
-                userId = userId,
-                createTime = createTime,
-            )
-        )
+    fun insertLike(commentId: Long, userId: Long, createTime: LocalDateTime) {
+        commentLikeMapper.upsertLike(commentId, userId, createTime)
     }
 
-    override fun deleteLike(targetId: Long, userId: Long): Int =
-        commentLikeMapper.deleteByCommentAndUser(targetId, userId)
+    fun deleteLike(commentId: Long, userId: Long): Int =
+        commentLikeMapper.deleteByCommentAndUser(commentId, userId)
 
-    override fun adjustLikeCount(targetId: Long, delta: Int) {
-        val current = commentStatisticsMapper.selectById(targetId)
-        val updated = (current ?: CommentStatistics(targetId, 0, 0))
-            .copy(likeCount = (current?.likeCount ?: 0) + delta)
+    fun adjustLikeCount(commentId: Long, delta: Int) {
+        val current = commentStatisticsMapper.selectById(commentId)
+        val updated =
+            (current ?: CommentStatistics(commentId, 0, 0)).copy(
+                likeCount = (current?.likeCount ?: 0) + delta
+            )
         if (current == null) {
             commentStatisticsMapper.insert(updated)
         } else {
@@ -55,12 +43,24 @@ class CommentInteractionRepository(
         return commentLikeMapper.selectCommentIdsByUser(userId, commentIds).toSet()
     }
 
-    fun findReactionsByCommentIds(commentIds: Collection<Long>): List<CommentReaction> {
-        if (commentIds.isEmpty()) return emptyList()
-        return commentReactionMapper.selectByCommentIds(commentIds.distinct())
+    fun markDeletedByComment(commentId: Long, now: LocalDateTime) {
+        commentLikeMapper.update(
+            null,
+            UpdateWrapper<CommentLike>()
+                .eq("comment_id", commentId)
+                .isNull("deleted_at")
+                .set("deleted_at", now),
+        )
     }
 
-    fun upsertReaction(commentId: Long, userId: Long, emoji: String, createTime: LocalDateTime) {
-        commentReactionMapper.upsertReaction(commentId, userId, emoji, createTime)
+    fun markDeletedByArticle(articleId: Long, now: LocalDateTime) {
+        val commentIds = "SELECT comment_id FROM comments WHERE article_id = $articleId"
+        commentLikeMapper.update(
+            null,
+            UpdateWrapper<CommentLike>()
+                .inSql("comment_id", commentIds)
+                .isNull("deleted_at")
+                .set("deleted_at", now),
+        )
     }
 }

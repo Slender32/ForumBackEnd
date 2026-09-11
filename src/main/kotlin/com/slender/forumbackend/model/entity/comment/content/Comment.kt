@@ -19,4 +19,5 @@ data class Comment(
     val publishTime: LocalDateTime,
     val createTime: LocalDateTime,
     val updateTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

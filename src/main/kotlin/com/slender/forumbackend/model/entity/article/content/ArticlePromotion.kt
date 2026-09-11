@@ -12,4 +12,5 @@ data class ArticlePromotion(
     val promoterId: Long,
     val content: String,
     val promoteTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

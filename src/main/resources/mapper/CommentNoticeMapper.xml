@@ -2,9 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.slender.forumbackend.mapper.CommentNoticeMapper">
     <select id="selectPageByRecipient" resultType="com.slender.forumbackend.model.entity.notice.CommentNotice">
-        SELECT notice_id, recipient_id, comment_id, article_id, sender_id, type, is_read, create_time
+        SELECT notice_id, recipient_id, comment_id, article_id, sender_id, type, is_read, create_time, deleted_at
         FROM comment_notices
-        WHERE recipient_id = #{recipientId}
+        WHERE recipient_id = #{recipientId} AND deleted_at IS NULL
         <if test="cursorCreateTime != null">
             AND (create_time &lt; #{cursorCreateTime}
                  OR (create_time = #{cursorCreateTime} AND notice_id &lt; #{cursorNoticeId}))
@@ -16,7 +16,7 @@
     <select id="countUnread" resultType="long">
         SELECT COUNT(*)
         FROM comment_notices
-        WHERE recipient_id = #{recipientId} AND is_read = FALSE
+        WHERE recipient_id = #{recipientId} AND is_read = FALSE AND deleted_at IS NULL
     </select>
 
     <update id="markRead">
@@ -24,6 +24,7 @@
         SET is_read = TRUE
         WHERE recipient_id = #{recipientId}
           AND is_read = FALSE
+          AND deleted_at IS NULL
         <if test="noticeIds != null and noticeIds.size() > 0">
             AND notice_id IN
             <foreach collection="noticeIds" item="noticeId" open="(" separator="," close=")">

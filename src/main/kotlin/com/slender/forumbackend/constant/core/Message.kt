@@ -50,5 +50,6 @@ object Message {
         const val CONVERSATION_NOT_FOUND_ERROR = "会话不存在"
         const val MESSAGE_SEND_FAILED_ERROR = "消息发送失败"
         const val MESSAGE_TARGET_INVALID_ERROR = "对方不存在或拒收"
+        const val ADMIN_RESOURCE_NOT_FOUND_ERROR = "后台资源不存在"
     }
 }

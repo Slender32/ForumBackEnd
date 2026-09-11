@@ -6,29 +6,31 @@
 
     <sql id="commentColumns">
         comment_id, article_id, author_id, root_comment_id, parent_comment_id,
-        reply_to_user_id, content, status, publish_time, create_time, update_time
+        reply_to_user_id, content, status, publish_time, create_time, update_time, deleted_at
     </sql>
 
     <sql id="visibleRootCondition">
-        c.status = #{normalStatus}
+        c.deleted_at IS NULL AND c.status = #{normalStatus}
         OR (
             c.status = #{deletedStatus}
             AND EXISTS (
                 SELECT 1 FROM comments child
                 WHERE child.root_comment_id = c.comment_id
                   AND child.status = #{normalStatus}
+                  AND child.deleted_at IS NULL
             )
         )
     </sql>
 
     <sql id="visibleReplyCondition">
-        c.status = #{normalStatus}
+        c.deleted_at IS NULL AND c.status = #{normalStatus}
         OR (
             c.status = #{deletedStatus}
             AND EXISTS (
                 SELECT 1 FROM comments child
                 WHERE child.parent_comment_id = c.comment_id
                   AND child.status = #{normalStatus}
+                  AND child.deleted_at IS NULL
             )
         )
     </sql>
@@ -42,6 +44,7 @@
         </foreach>
           AND status = #{normalStatus}
           AND root_comment_id = #{rootCommentId}
+          AND deleted_at IS NULL
         ORDER BY publish_time DESC
     </select>
 
@@ -50,6 +53,7 @@
         FROM comments
         WHERE comment_id = #{commentId}
           AND status = #{normalStatus}
+          AND deleted_at IS NULL
     </select>
 
     <select id="selectTopLevelComments" resultType="com.slender.forumbackend.model.entity.comment.content.Comment">
@@ -96,7 +100,7 @@
 
     <select id="selectReplyPreviews" resultType="com.slender.forumbackend.model.entity.comment.content.Comment">
         SELECT comment_id, article_id, author_id, root_comment_id, parent_comment_id,
-               reply_to_user_id, content, status, publish_time, create_time, update_time
+               reply_to_user_id, content, status, publish_time, create_time, update_time, deleted_at
         FROM (
             SELECT c.*,
                    ROW_NUMBER() OVER (
@@ -121,6 +125,7 @@
         FROM comments
         WHERE author_id = #{authorId}
           AND status = #{normalStatus}
+          AND deleted_at IS NULL
         <if test="cursorPublishTime != null">
             AND (publish_time &lt; #{cursorPublishTime}
                  OR (publish_time = #{cursorPublishTime} AND comment_id &lt; #{cursorCommentId}))
@@ -134,6 +139,7 @@
         FROM comments
         WHERE article_id = #{articleId}
           AND status = #{normalStatus}
+          AND deleted_at IS NULL
     </select>
 
     <select id="countNormalRepliesByRootId" resultType="long">
@@ -141,6 +147,7 @@
         FROM comments
         WHERE root_comment_id = #{rootCommentId}
           AND status = #{normalStatus}
+          AND deleted_at IS NULL
     </select>
 
     <select id="countNormalRepliesByRootIds" resultType="map">
@@ -151,6 +158,7 @@
             #{rootCommentId}
         </foreach>
           AND status = #{normalStatus}
+          AND deleted_at IS NULL
         GROUP BY root_comment_id
     </select>
 

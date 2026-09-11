@@ -1,6 +1,6 @@
 package com.slender.forumbackend.repository.user
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.baomidou.mybatisplus.spring.service.IService
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl
 import com.slender.forumbackend.constant.field.UserField.FOLLOWEE_ID
@@ -30,6 +30,17 @@ class UserWriteRepository(
     }
 
     fun insertFollow(follow: UserFollow) {
+        val restored =
+            userFollowMapper.update(
+                null,
+                UpdateWrapper<UserFollow>()
+                    .eq(FOLLOWER_ID, follow.followerId)
+                    .eq(FOLLOWEE_ID, follow.followeeId)
+                    .isNotNull("deleted_at")
+                    .set("deleted_at", null)
+                    .set("create_time", follow.createTime),
+            )
+        if (restored > 0) return
         userFollowMapper.insert(follow)
     }
 
@@ -45,17 +56,24 @@ class UserWriteRepository(
         userStatisticsMapper.addFanCount(userId, delta)
     }
 
-
     fun updateUser(user: User) = userMapper.updateById(user) > 0
+
+    fun updateSignature(uid: Long, signature: String, updateTime: java.time.LocalDateTime): Boolean {
+        val current = userMapper.selectById(uid) ?: return false
+        if (current.status != com.slender.forumbackend.constant.enumeration.user.UserStatus.ACTIVE) return false
+        return userMapper.updateById(current.copy(signature = signature, updateTime = updateTime)) > 0
+    }
 
     fun deductMoePoint(userId: Long, amount: Int) =
         userStatisticsMapper.deductMoePoint(userId, amount) > 0
 
-
     fun deleteFollow(followerId: Long, followeeId: Long) =
-        userFollowMapper.delete(
-            QueryWrapper<UserFollow>()
+        userFollowMapper.update(
+            null,
+            UpdateWrapper<UserFollow>()
                 .eq(FOLLOWER_ID, followerId)
                 .eq(FOLLOWEE_ID, followeeId)
+                .isNull("deleted_at")
+                .set("deleted_at", java.time.LocalDateTime.now()),
         )
 }

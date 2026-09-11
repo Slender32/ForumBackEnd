@@ -2,22 +2,24 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.slender.forumbackend.mapper.TagMapper">
     <select id="findPopular" resultType="com.slender.forumbackend.model.entity.Tag">
-        SELECT t.tid, t.name, t.color, t.create_time
+        SELECT t.tid, t.name, t.color, t.create_time, t.deleted_at
         FROM tags t
-        LEFT JOIN article_tags at ON at.tag_id = t.tid
+        LEFT JOIN article_tags at ON at.tag_id = t.tid AND at.deleted_at IS NULL
         LEFT JOIN articles a
                ON a.article_id = at.article_id
               AND a.status = 'PUBLISHED'
               AND a.visibility = 'PUBLIC'
+              AND a.deleted_at IS NULL
+        WHERE t.deleted_at IS NULL
         GROUP BY t.tid, t.name, t.color, t.create_time
         ORDER BY COUNT(a.article_id) DESC, t.tid ASC
         LIMIT #{limit}
     </select>
 
     <select id="findByNamePrefix" resultType="com.slender.forumbackend.model.entity.Tag">
-        SELECT t.tid, t.name, t.color, t.create_time
+        SELECT t.tid, t.name, t.color, t.create_time, t.deleted_at
         FROM tags t
-        WHERE t.name ILIKE #{pattern} ESCAPE '!'
+        WHERE t.deleted_at IS NULL AND t.name ILIKE #{pattern} ESCAPE '!'
         ORDER BY t.name ASC
         LIMIT #{limit}
     </select>

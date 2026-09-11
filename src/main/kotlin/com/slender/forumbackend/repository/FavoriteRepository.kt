@@ -1,6 +1,7 @@
 package com.slender.forumbackend.repository
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.baomidou.mybatisplus.spring.service.IService
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl
 import com.slender.forumbackend.constant.field.FavoriteField.ARTICLE_ID
@@ -9,30 +10,61 @@ import com.slender.forumbackend.constant.field.FavoriteField.FAVORITE_ID
 import com.slender.forumbackend.constant.field.FavoriteField.USER_ID
 import com.slender.forumbackend.mapper.FavoriteMapper
 import com.slender.forumbackend.model.entity.favorite.Favorite
-import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import org.springframework.stereotype.Repository
 
 @Repository
-class FavoriteRepository(
-    private val favoriteMapper: FavoriteMapper,
-) : ServiceImpl<FavoriteMapper, Favorite>(), IService<Favorite> {
+class FavoriteRepository(private val favoriteMapper: FavoriteMapper) :
+    ServiceImpl<FavoriteMapper, Favorite>(), IService<Favorite> {
     fun find(userId: Long, articleId: Long): Favorite? =
         favoriteMapper.selectOne(
             QueryWrapper<Favorite>()
                 .eq(USER_ID, userId)
                 .eq(ARTICLE_ID, articleId)
+                .isNull("deleted_at")
         )
 
     fun insert(favorite: Favorite): Long {
+        val restored =
+            favoriteMapper.update(
+                null,
+                UpdateWrapper<Favorite>()
+                    .eq(USER_ID, favorite.userId)
+                    .eq(ARTICLE_ID, favorite.articleId)
+                    .isNotNull("deleted_at")
+                    .set("deleted_at", null)
+                    .set(CREATE_TIME, favorite.createTime),
+            )
+        if (restored > 0)
+            return favoriteMapper
+                .selectOne(
+                    QueryWrapper<Favorite>()
+                        .eq(USER_ID, favorite.userId)
+                        .eq(ARTICLE_ID, favorite.articleId)
+                        .isNull("deleted_at")
+                )!!
+                .favoriteId
         favoriteMapper.insert(favorite)
         return favorite.favoriteId
     }
 
     fun delete(userId: Long, articleId: Long): Int =
-        favoriteMapper.delete(
-            QueryWrapper<Favorite>()
+        favoriteMapper.update(
+            null,
+            UpdateWrapper<Favorite>()
                 .eq(USER_ID, userId)
                 .eq(ARTICLE_ID, articleId)
+                .isNull("deleted_at")
+                .set("deleted_at", LocalDateTime.now()),
+        )
+
+    fun markDeletedByArticle(articleId: Long, now: LocalDateTime) =
+        favoriteMapper.update(
+            null,
+            UpdateWrapper<Favorite>()
+                .eq(ARTICLE_ID, articleId)
+                .isNull("deleted_at")
+                .set("deleted_at", now),
         )
 
     fun findPageByUser(
@@ -41,7 +73,7 @@ class FavoriteRepository(
         cursorCreateTime: LocalDateTime?,
         limit: Int,
     ): List<Favorite> {
-        val wrapper = QueryWrapper<Favorite>().eq(USER_ID, userId)
+        val wrapper = QueryWrapper<Favorite>().eq(USER_ID, userId).isNull("deleted_at")
         if (cursorCreateTime != null) {
             wrapper.apply(
                 "(create_time < {0} OR (create_time = {0} AND favorite_id < {1}))",
@@ -50,10 +82,7 @@ class FavoriteRepository(
             )
         }
         return favoriteMapper.selectList(
-            wrapper
-                .orderByDesc(CREATE_TIME)
-                .orderByDesc(FAVORITE_ID)
-                .last("LIMIT $limit")
+            wrapper.orderByDesc(CREATE_TIME).orderByDesc(FAVORITE_ID).last("LIMIT $limit")
         )
     }
 }

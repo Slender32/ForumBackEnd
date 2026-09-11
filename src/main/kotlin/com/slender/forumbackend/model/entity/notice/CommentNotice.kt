@@ -16,4 +16,5 @@ data class CommentNotice(
     val type: CommentNoticeType,
     val isRead: Boolean = false,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

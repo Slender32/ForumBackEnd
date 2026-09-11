@@ -1,36 +1,62 @@
 package com.slender.forumbackend.repository
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.baomidou.mybatisplus.spring.service.IService
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl
 import com.slender.forumbackend.mapper.TagMapper
 import com.slender.forumbackend.model.entity.Tag
-import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import org.springframework.stereotype.Repository
 
 @Repository
 class TagRepository(
     private val tagMapper: TagMapper
 ) : ServiceImpl<TagMapper, Tag>(), IService<Tag> {
-    fun findById(tagId: Long): Tag? = tagMapper.selectById(tagId)
+    fun findById(tagId: Long): Tag? =
+        tagMapper.selectOne(QueryWrapper<Tag>().eq("tid", tagId).isNull("deleted_at"))
+
+    fun markDeleted(tagId: Long, now: LocalDateTime) =
+        tagMapper.update(
+            null,
+            UpdateWrapper<Tag>()
+                .eq("tid", tagId)
+                .isNull("deleted_at")
+                .set("deleted_at", now),
+        ) > 0
 
     fun findByIds(tagIds: Collection<Long>) =
-        tagIds.distinct()
+        tagIds
+            .distinct()
             .takeIf { it.isNotEmpty() }
-            ?.let { tagMapper.selectByIds(it) } ?: emptyList()
+            ?.let { tagMapper.selectList(QueryWrapper<Tag>().`in`("tid", it).isNull("deleted_at")) }
+            ?: emptyList()
 
     fun findOrCreate(name: String, color: Int, createTime: LocalDateTime): Tag =
-        findByNameAndColor(name, color) ?: Tag(
-            name = name,
-            color = color,
-            createTime = createTime,
-        ).also { tagMapper.insert(it) }
+        findByNameAndColor(name, color)
+            ?: findDeletedByNameAndColor(name, color)
+                ?.also { tag ->
+                    tagMapper.update(
+                        null,
+                        UpdateWrapper<Tag>()
+                            .eq("tid", tag.tid)
+                            .isNotNull("deleted_at")
+                            .set("deleted_at", null),
+                    )
+                }
+                ?.copy(deletedAt = null)
+            ?: Tag(name = name, color = color, createTime = createTime).also {
+                tagMapper.insert(it)
+            }
 
     fun findByNameAndColor(name: String, color: Int): Tag? =
         tagMapper.selectOne(
-            QueryWrapper<Tag>()
-                .eq("name", name)
-                .eq("color", color)
+            QueryWrapper<Tag>().eq("name", name).eq("color", color).isNull("deleted_at")
+        )
+
+    private fun findDeletedByNameAndColor(name: String, color: Int): Tag? =
+        tagMapper.selectOne(
+            QueryWrapper<Tag>().eq("name", name).eq("color", color).isNotNull("deleted_at")
         )
 
     fun findPopular(limit: Int): List<Tag> = tagMapper.findPopular(limit)

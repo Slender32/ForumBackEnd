@@ -1,6 +1,7 @@
 package com.slender.forumbackend.constant.enumeration.error
 
 import com.slender.forumbackend.constant.core.Message.Exception.ACCESS_TOKEN_EXPIRE_ERROR
+import com.slender.forumbackend.constant.core.Message.Exception.ADMIN_RESOURCE_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.ARTICLE_ALREADY_REWARDED_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.ARTICLE_CONTENT_INVALID_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.ARTICLE_FORBIDDEN_ERROR
@@ -15,12 +16,12 @@ import com.slender.forumbackend.constant.core.Message.Exception.COMMENT_FORBIDDE
 import com.slender.forumbackend.constant.core.Message.Exception.COMMENT_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.CONVERSATION_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.EMAIL_OR_PASSWORD_ERROR
-import com.slender.forumbackend.constant.core.Message.Exception.MESSAGE_SEND_FAILED_ERROR
-import com.slender.forumbackend.constant.core.Message.Exception.MESSAGE_TARGET_INVALID_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.EMAIL_REGISTERED_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.FILE_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.INTERNAL_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.LOGIN_ERROR
+import com.slender.forumbackend.constant.core.Message.Exception.MESSAGE_SEND_FAILED_ERROR
+import com.slender.forumbackend.constant.core.Message.Exception.MESSAGE_TARGET_INVALID_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.MOE_POINT_NOT_ENOUGH_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.RATE_LIMITED_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.REFRESH_TOKEN_EXPIRE_ERROR
@@ -42,11 +43,7 @@ import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 
-enum class Error(
-    val code: Int,
-    val status: HttpStatus,
-    val message: String,
-) {
+enum class Error(val code: Int, val status: HttpStatus, val message: String) {
     TOKEN_MISSING(1001, UNAUTHORIZED, TOKEN_NOT_FOUND),
     ACCESS_TOKEN_EXPIRED(1002, UNAUTHORIZED, ACCESS_TOKEN_EXPIRE_ERROR),
     REFRESH_TOKEN_EXPIRED(1003, UNAUTHORIZED, REFRESH_TOKEN_EXPIRE_ERROR),
@@ -81,4 +78,5 @@ enum class Error(
     REPORT_DUPLICATED(1601, CONFLICT, REPORT_DUPLICATED_ERROR),
     REPORT_REASON_INVALID(1602, BAD_REQUEST, REPORT_REASON_INVALID_ERROR),
     RATE_LIMITED(1701, HttpStatus.TOO_MANY_REQUESTS, RATE_LIMITED_ERROR),
+    ADMIN_RESOURCE_NOT_FOUND(1801, NOT_FOUND, ADMIN_RESOURCE_NOT_FOUND_ERROR),
 }

@@ -8,4 +8,5 @@ data class UserFollow(
     val followerId: Long = 0,
     val followeeId: Long = 0,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

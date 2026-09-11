@@ -18,6 +18,7 @@ import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.exception.NullFileNameException
 import com.slender.forumbackend.model.data.file.ImageUploadData
 import com.slender.forumbackend.model.data.file.ImageUploadItemData
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
 import java.time.LocalDate.now
@@ -29,6 +30,8 @@ import java.util.UUID.randomUUID
 class FileStore(
     private val client: OSSClient
 ) {
+
+    private val logger = LoggerFactory.getLogger(FileStore::class.java)
 
     private companion object {
         const val MB = 1024 * 1024
@@ -52,7 +55,14 @@ class FileStore(
         return runCatching handle@{
             client.putObject(request)
             return@handle "https://$BUCKET_NAME.$ENDPOINT/$objectName"
-        }.onFailure {
+        }.onFailure { exception ->
+            logger.error(
+                "OSS upload failed: bucket={}, objectName={}, exception={}",
+                BUCKET_NAME,
+                objectName,
+                exception::class.qualifiedName,
+                exception,
+            )
             throw FileUploadFailureException()
         }.getOrThrow()
     }

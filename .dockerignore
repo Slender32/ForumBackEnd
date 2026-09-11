@@ -1,0 +1,11 @@
+.git
+.github
+.gradle
+.idea
+.kotlin
+build/reports
+build/test-results
+docs
+.env
+.env.*
+!.env.example

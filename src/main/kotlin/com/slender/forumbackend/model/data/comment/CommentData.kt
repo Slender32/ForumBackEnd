@@ -15,7 +15,6 @@ data class CommentData(
     val replyToUserName: String = "",
     val likeCount: Int = 0,
     val replyCount: Int = 0,
-    val reactions: List<CommentReactionData> = emptyList(),
     val isLiked: Boolean = false,
     val replies: List<CommentData> = emptyList(),
 )

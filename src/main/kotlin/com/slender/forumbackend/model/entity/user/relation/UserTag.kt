@@ -8,4 +8,5 @@ data class UserTag(
     val userId: Long,
     val tagId: Long,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

@@ -8,4 +8,5 @@ data class ArticleLike(
     val articleId: Long,
     val userId: Long,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

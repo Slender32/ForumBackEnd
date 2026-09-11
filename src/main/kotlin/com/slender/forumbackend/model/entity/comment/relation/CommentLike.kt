@@ -8,4 +8,5 @@ data class CommentLike(
     val commentId: Long,
     val userId: Long,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

@@ -4,10 +4,9 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper
 import com.slender.forumbackend.model.entity.comment.content.Comment
 import com.slender.forumbackend.model.entity.comment.content.CommentStatistics
 import com.slender.forumbackend.model.entity.comment.relation.CommentLike
-import com.slender.forumbackend.model.entity.comment.relation.CommentReaction
+import java.time.LocalDateTime
 import org.apache.ibatis.annotations.Mapper
 import org.apache.ibatis.annotations.Param
-import java.time.LocalDateTime
 
 @Mapper
 interface CommentMapper : BaseMapper<Comment> {
@@ -73,8 +72,7 @@ interface CommentMapper : BaseMapper<Comment> {
     ): List<Map<String, Any>>
 }
 
-@Mapper
-interface CommentStatisticsMapper : BaseMapper<CommentStatistics>
+@Mapper interface CommentStatisticsMapper : BaseMapper<CommentStatistics>
 
 @Mapper
 interface CommentLikeMapper : BaseMapper<CommentLike> {
@@ -92,16 +90,10 @@ interface CommentLikeMapper : BaseMapper<CommentLike> {
         @Param("commentId") commentId: Long,
         @Param("userId") userId: Long,
     ): Int
-}
 
-@Mapper
-interface CommentReactionMapper : BaseMapper<CommentReaction> {
-    fun selectByCommentIds(@Param("commentIds") commentIds: Collection<Long>): List<CommentReaction>
-
-    fun upsertReaction(
+    fun upsertLike(
         @Param("commentId") commentId: Long,
         @Param("userId") userId: Long,
-        @Param("emoji") emoji: String,
         @Param("createTime") createTime: LocalDateTime,
-    )
+    ): Int
 }

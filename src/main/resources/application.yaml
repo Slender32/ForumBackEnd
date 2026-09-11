@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
   config:
     import: optional:file:./.env[.properties]
   application:
@@ -27,8 +31,10 @@ spring:
           ssl:
             enable: true
 forum:
-  interaction:
-    sync-delay-ms: 60000
+  archive:
+    retention-days: 30
+    cron: "0 0 3 * * *"
+    batch-size: 500
   oss:
     accessKeyId: ${OSS_ACCESS_KEY_ID}
     accessKeySecret: ${OSS_ACCESS_KEY_SECRET}

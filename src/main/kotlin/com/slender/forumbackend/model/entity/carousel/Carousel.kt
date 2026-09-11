@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 @TableName("carousels")
 data class Carousel(
     @TableId
-    val carouselId: Long = 0,
+    val carouselId: Long = 0, //TODO Review
     val title: String,
     val summary: String,
     val image: String,
@@ -18,4 +18,5 @@ data class Carousel(
     val enabled: Boolean = true,
     val createTime: LocalDateTime,
     val updateTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

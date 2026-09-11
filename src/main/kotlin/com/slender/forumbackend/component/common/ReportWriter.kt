@@ -2,7 +2,7 @@ package com.slender.forumbackend.component.common
 
 import com.slender.forumbackend.exception.ReportReasonInvalidException
 import com.slender.forumbackend.model.entity.report.Report
-import com.slender.forumbackend.model.entity.report.ReportTargetType
+import com.slender.forumbackend.constant.enumeration.report.ReportTargetType
 import com.slender.forumbackend.model.request.ReportReason
 import com.slender.forumbackend.model.request.ReportRequest
 import com.slender.forumbackend.repository.ReportRepository

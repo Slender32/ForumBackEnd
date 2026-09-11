@@ -2,23 +2,31 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.slender.forumbackend.mapper.CommentLikeMapper">
     <select id="selectByCommentAndUser" resultType="com.slender.forumbackend.model.entity.comment.relation.CommentLike">
-        SELECT comment_id, user_id, create_time
+        SELECT comment_id, user_id, create_time, deleted_at
         FROM comment_likes
-        WHERE comment_id = #{commentId} AND user_id = #{userId}
+        WHERE comment_id = #{commentId} AND user_id = #{userId} AND deleted_at IS NULL
     </select>
 
     <select id="selectCommentIdsByUser" resultType="long">
         SELECT comment_id
         FROM comment_likes
-        WHERE user_id = #{userId}
+        WHERE user_id = #{userId} AND deleted_at IS NULL
           AND comment_id IN
           <foreach collection="commentIds" item="commentId" open="(" separator="," close=")">
               #{commentId}
           </foreach>
     </select>
 
-    <delete id="deleteByCommentAndUser">
-        DELETE FROM comment_likes
-        WHERE comment_id = #{commentId} AND user_id = #{userId}
-    </delete>
+    <update id="deleteByCommentAndUser">
+        UPDATE comment_likes
+        SET deleted_at = CURRENT_TIMESTAMP
+        WHERE comment_id = #{commentId} AND user_id = #{userId} AND deleted_at IS NULL
+    </update>
+    <insert id="upsertLike">
+        INSERT INTO comment_likes(comment_id, user_id, create_time, deleted_at)
+        VALUES (#{commentId}, #{userId}, #{createTime}, NULL)
+        ON CONFLICT (comment_id, user_id) DO UPDATE
+        SET create_time = EXCLUDED.create_time,
+            deleted_at = NULL
+    </insert>
 </mapper>

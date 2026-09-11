@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.ArchiveSourceMapper">
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM ${table}
+        WHERE deleted_at IS NOT NULL
+          AND deleted_at &lt;= #{cutoff}
+          AND archived_at IS NULL
+    </select>
+
+    <select id="find" resultType="map">
+        SELECT source.*
+        <if test="failedOnly">
+            , ar.object_key AS __archive_object_key
+            , ar.batch_id AS __archive_batch_id
+        </if>
+        FROM ${table} source
+        <if test="failedOnly">
+            INNER JOIN archive_records ar
+                ON ar.source_table = #{table}
+                AND ar.source_id = (
+                    <foreach collection="keys" item="key" separator=" || '|' || ">
+                        CAST(source.${key} AS VARCHAR)
+                    </foreach>
+                )
+                AND ar.deleted_at = source.deleted_at
+                AND ar.status = 'FAILED'
+        </if>
+        WHERE source.deleted_at IS NOT NULL
+          AND source.deleted_at &lt;= #{cutoff}
+          AND source.archived_at IS NULL
+        <if test="!failedOnly">
+            AND NOT EXISTS (
+                SELECT 1
+                FROM archive_records ar
+                WHERE ar.source_table = #{table}
+                  AND ar.source_id = (
+                      <foreach collection="keys" item="key" separator=" || '|' || ">
+                          CAST(source.${key} AS VARCHAR)
+                      </foreach>
+                  )
+                  AND ar.deleted_at = source.deleted_at
+                  AND ar.status IN ('FAILED', 'COMPLETED')
+            )
+        </if>
+        ORDER BY source.deleted_at
+        LIMIT #{limit}
+    </select>
+
+    <insert id="upsert">
+        INSERT INTO archive_records
+            (source_table, source_id, object_key, payload_sha256, batch_id, status, deleted_at)
+        VALUES
+            (#{table}, #{sourceId}, #{objectKey}, #{digest}, #{batchId}, 'PENDING', #{deletedAt})
+        ON CONFLICT (source_table, source_id, deleted_at) DO UPDATE SET
+            object_key = EXCLUDED.object_key,
+            payload_sha256 = EXCLUDED.payload_sha256,
+            batch_id = EXCLUDED.batch_id,
+            status = 'PENDING',
+            archived_at = NULL,
+            error_message = NULL
+    </insert>
+
+    <update id="markCopied">
+        UPDATE archive_records
+        SET status = 'COPIED', error_message = NULL
+        WHERE source_table = #{table}
+          AND source_id = #{sourceId}
+          AND deleted_at = #{deletedAt}
+          AND status = 'PENDING'
+    </update>
+
+    <update id="markSource">
+        UPDATE ${table}
+        SET archived_at = NOW()
+        WHERE
+        <foreach collection="keys" item="key" index="index" separator=" AND ">
+            ${key} = #{values[${index}]}
+        </foreach>
+          AND archived_at IS NULL
+    </update>
+
+    <delete id="deleteSource">
+        DELETE FROM ${table}
+        WHERE
+        <foreach collection="keys" item="key" index="index" separator=" AND ">
+            ${key} = #{values[${index}]}
+        </foreach>
+          AND archived_at IS NOT NULL
+    </delete>
+
+    <update id="markCompleted">
+        UPDATE archive_records
+        SET status = 'COMPLETED', archived_at = NOW(), error_message = NULL
+        WHERE source_table = #{table}
+          AND source_id = #{sourceId}
+          AND deleted_at = #{deletedAt}
+          AND status = 'COPIED'
+    </update>
+
+    <update id="markFailed">
+        UPDATE archive_records
+        SET status = 'FAILED', archived_at = NULL, error_message = #{message}
+        WHERE source_table = #{table}
+          AND source_id = #{sourceId}
+          AND deleted_at = #{deletedAt}
+          AND status &lt;&gt; 'COMPLETED'
+    </update>
+
+    <select id="stats" resultType="map">
+        <choose>
+            <when test="table == 'comments'">
+                SELECT * FROM comment_stats WHERE comment_id = #{id}
+            </when>
+            <otherwise>
+                SELECT * FROM article_stats WHERE article_id = #{id}
+            </otherwise>
+        </choose>
+    </select>
+
+    <delete id="deleteStats">
+        <choose>
+            <when test="table == 'comments'">
+                DELETE FROM comment_stats WHERE comment_id = #{id}
+            </when>
+            <otherwise>
+                DELETE FROM article_stats WHERE article_id = #{id}
+            </otherwise>
+        </choose>
+    </delete>
+</mapper>

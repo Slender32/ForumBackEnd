@@ -1,10 +1,11 @@
 package com.slender.forumbackend.service.user
 
-import com.slender.forumbackend.constant.core.Redis.Key.USER_LOGIN_CACHE
-import com.slender.forumbackend.component.user.UserProfileValidator
-import com.slender.forumbackend.component.user.UserPasswordValidator
 import com.slender.forumbackend.component.common.CaptchaGenerator
+import com.slender.forumbackend.component.user.UserPasswordValidator
+import com.slender.forumbackend.component.user.UserProfileValidator
+import com.slender.forumbackend.constant.core.Redis.Key.USER_LOGIN_CACHE
 import com.slender.forumbackend.constant.enumeration.user.UserStatus.DELETED
+import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.exception.UserAlreadyExistsException
 import com.slender.forumbackend.model.data.SessionData
 import com.slender.forumbackend.model.data.UserData
@@ -18,13 +19,16 @@ import com.slender.forumbackend.model.request.UpdatePasswordRequest
 import com.slender.forumbackend.model.request.UpdateSignatureRequest
 import com.slender.forumbackend.repository.user.UserReadRepository
 import com.slender.forumbackend.repository.user.UserWriteRepository
+import com.slender.forumbackend.component.common.ContentModerationPolicy
+import com.slender.forumbackend.component.common.ContentReviewWriter
+import com.slender.forumbackend.component.common.ModerationStatus
 import com.slender.forumbackend.service.auth.UserTokenService
 import java.time.Instant
+import java.time.LocalDateTime.now
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime.now
 
 @Service
 class UserAccountService(
@@ -36,6 +40,8 @@ class UserAccountService(
     private val captchaGenerator: CaptchaGenerator,
     private val userTokenService: UserTokenService,
     private val redisTemplate: StringRedisTemplate,
+    private val moderation: ContentModerationPolicy,
+    private val reviews: ContentReviewWriter,
 ) {
     @Transactional
     fun updateAvatar(uid: Long, request: UpdateAvatarRequest): UserData {
@@ -45,9 +51,21 @@ class UserAccountService(
 
     @Transactional
     fun updateSignature(uid: Long, request: UpdateSignatureRequest): UserData {
-        val signature = request.signature.trim()
-        userProfileValidator.validateSignature(signature)
-        return updateUser(uid) { copy(signature = signature) }
+        val result = moderation.moderate(request.signature.trim())
+        if (result.status == ModerationStatus.BLOCKED) throw InvalidRequestException("内容包含敏感词，无法提交")
+        userProfileValidator.validateSignature(result.text)
+        if (result.status == ModerationStatus.REVIEW_REQUIRED) {
+            val user = userReadRepository.findActiveByIdOrThrow(uid)
+            reviews.enqueue(
+                "USER_SIGNATURE",
+                uid,
+                uid,
+                mapOf("uid" to uid, "signature" to result.text),
+                result.text,
+            )
+            return user.toUserData(userReadRepository.findStatisticsById(uid))
+        }
+        return updateUser(uid) { copy(signature = result.text) }
     }
 
     @Transactional
@@ -87,12 +105,7 @@ class UserAccountService(
         captchaGenerator.validate(user.email, request.captcha)
 
         val cancelledAt = Instant.now().toEpochMilli()
-        userWriteRepository.updateUser(
-            user.copy(
-                status = DELETED,
-                updateTime = now(),
-            )
-        )
+        userWriteRepository.updateUser(user.copy(status = DELETED, updateTime = now()))
         captchaGenerator.consume(user.email)
         redisTemplate.delete(USER_LOGIN_CACHE + uid)
         return CancelAccountData(uid, cancelledAt)

@@ -8,4 +8,5 @@ data class UserRole(
     val userId: Long,
     val roleId: Long,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )

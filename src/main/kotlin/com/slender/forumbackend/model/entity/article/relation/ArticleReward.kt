@@ -12,4 +12,5 @@ data class ArticleReward(
     val userId: Long,
     val amount: Int,
     val createTime: LocalDateTime,
+    val deletedAt: LocalDateTime? = null,
 )
