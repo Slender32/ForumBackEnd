@@ -5,7 +5,6 @@ import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.model.entity.user.rbac.Role
 import com.slender.forumbackend.repository.RbacRepository
 import com.slender.forumbackend.repository.user.UserReadRepository
-import java.time.LocalDateTime
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

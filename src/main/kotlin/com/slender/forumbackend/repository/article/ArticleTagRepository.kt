@@ -26,7 +26,7 @@ class ArticleTagRepository(
 
     fun countVisibleByTagId(tagId: Long): Int = articleMapper.countVisibleByTagId(tagId).toInt()
 
-    fun markDeletedByArticle(articleId: Long, now: java.time.LocalDateTime) =
+    fun markDeletedByArticle(articleId: Long, now: LocalDateTime) =
         articleTagMapper.update(
             null,
             UpdateWrapper<ArticleTag>()

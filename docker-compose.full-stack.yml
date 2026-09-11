@@ -29,6 +29,8 @@ services:
       dockerfile: Dockerfile.full-stack
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     depends_on:
       postgres:
         condition: service_healthy
@@ -43,8 +45,6 @@ services:
       SPRING_DATA_REDIS_PORT: "6379"
       MAIL_USERNAME: full-stack@example.com
       MAIL_PASSWORD: test-password
-      OSS_ACCESS_KEY_ID: test-access-key
-      OSS_ACCESS_KEY_SECRET: test-access-secret
 
   nginx:
     build:
@@ -55,4 +55,3 @@ services:
     depends_on:
       app:
         condition: service_started
-

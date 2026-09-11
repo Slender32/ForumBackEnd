@@ -8,7 +8,6 @@ import com.slender.forumbackend.repository.article.ArticleTagRepository
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime.now
-import kotlin.math.max
 
 @Service
 class ArticleTagService(

@@ -4,24 +4,19 @@ import com.slender.forumbackend.component.comment.CommentContentValidator
 import com.slender.forumbackend.component.comment.CommentDataAssembler
 import com.slender.forumbackend.component.comment.CommentDeleteValidator
 import com.slender.forumbackend.component.comment.CommentFactory
+import com.slender.forumbackend.component.common.ContentReviewWriter
+import com.slender.forumbackend.component.common.ModerationStatus
 import com.slender.forumbackend.constant.enumeration.comment.CommentStatus
 import com.slender.forumbackend.constant.enumeration.notice.CommentNoticeType
 import com.slender.forumbackend.exception.CommentNotFoundException
-import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.model.data.comment.CommentCreateData
 import com.slender.forumbackend.model.data.comment.CommentDeleteData
 import com.slender.forumbackend.repository.article.ArticleQueryRepository
 import com.slender.forumbackend.repository.article.ArticleStatisticRepository
-import com.slender.forumbackend.repository.comment.CommentContentRepository
-import com.slender.forumbackend.repository.comment.CommentInteractionRepository
-import com.slender.forumbackend.repository.comment.CommentNoticeRepository
-import com.slender.forumbackend.repository.comment.CommentQueryRepository
-import com.slender.forumbackend.repository.comment.CommentStatisticRepository
-import com.slender.forumbackend.component.common.ContentReviewWriter
-import com.slender.forumbackend.component.common.ModerationStatus
-import java.time.LocalDateTime.now
+import com.slender.forumbackend.repository.comment.*
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime.now
 
 @Service
 class CommentCommandService(
