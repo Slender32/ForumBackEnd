@@ -2,6 +2,7 @@ package com.slender.forumbackend.controller
 
 import com.slender.forumbackend.model.cache.UserCache
 import com.slender.forumbackend.model.data.AdminPageData
+import com.slender.forumbackend.model.data.AdminArticleDetailData
 import com.slender.forumbackend.model.data.Response
 import com.slender.forumbackend.model.data.Response.Companion.success
 import com.slender.forumbackend.model.entity.article.content.Article
@@ -39,7 +40,7 @@ class AdminArticleController(
     @GetMapping("/{id}")
     fun get(
         @PathVariable id: Long
-    ): Response<Article> = success(facade.get(id))
+    ): Response<AdminArticleDetailData> = success(facade.detail(id))
 
     @PutMapping("/{id}")
     fun update(

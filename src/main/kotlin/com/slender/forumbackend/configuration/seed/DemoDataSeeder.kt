@@ -1,6 +1,7 @@
 package com.slender.forumbackend.configuration.seed
 
 import com.slender.forumbackend.library.logger
+import com.slender.forumbackend.repository.user.UserReadRepository
 import java.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationArguments
@@ -15,6 +16,7 @@ class DemoDataSeeder(
     private val userDataSeeder: UserDataSeeder,
     private val articleDataSeeder: ArticleDataSeeder,
     private val messageDataSeeder: MessageDataSeeder,
+    private val userReadRepository: UserReadRepository,
     @Value($$"${forum.seed.demo.enabled:false}") private val enabled: Boolean,
 ) : ApplicationRunner {
     private val log = logger()
@@ -24,6 +26,10 @@ class DemoDataSeeder(
         log.info("DemoDataSeeder loaded: enabled={}", enabled)
         if (!enabled) {
             log.info("DemoDataSeeder skipped because forum.seed.demo.enabled=false")
+            return
+        }
+        if (userReadRepository.findByEmail(DEMO_ADMIN_EMAIL) != null) {
+            log.info("DemoDataSeeder skipped because demo data already exists")
             return
         }
 
@@ -36,6 +42,7 @@ class DemoDataSeeder(
     }
 
     private companion object {
+        const val DEMO_ADMIN_EMAIL = "admin.demo@forum.test"
         val FIXED_NOW: LocalDateTime = LocalDateTime.of(2026, 8, 19, 18, 30)
     }
 }

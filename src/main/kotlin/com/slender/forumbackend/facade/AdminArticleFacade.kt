@@ -17,6 +17,8 @@ class AdminArticleFacade(
 
     fun get(id: Long) = query.get(id)
 
+    fun detail(id: Long) = query.detail(id)
+
     @Transactional
     fun update(id: Long, operatorId: Long, authorities: Set<String>, request: ArticleUpdateRequest): Article {
         commands.update(id, operatorId, authorities, request)

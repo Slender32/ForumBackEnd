@@ -48,8 +48,8 @@ services:
 
   nginx:
     build:
-      context: ../ForumWebSite
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: ForumWebSite/Dockerfile.full-stack
     ports:
       - "80:80"
     depends_on:
