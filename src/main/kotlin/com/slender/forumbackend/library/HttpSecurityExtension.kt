@@ -30,6 +30,10 @@ internal fun HttpSecurity.noAuthentication(vararg paths: String){
     } }
 }
 
+internal fun HttpSecurity.authentication(authority: String, vararg paths: String){
+    authorizeHttpRequests { it.requestMatchers(*paths).hasAuthority(authority) }
+}
+
 internal inline fun HttpSecurity.signOut(
     crossinline block: LogoutConfigurer<HttpSecurity>.() -> Unit
 ) = logout { it.block() }

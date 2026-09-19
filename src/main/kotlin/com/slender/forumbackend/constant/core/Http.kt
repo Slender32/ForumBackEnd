@@ -80,6 +80,10 @@ object Http {
     const val STATIC_OPENAPI_DOCS = "/docs/**"
     const val WEBJARS = "/webjars/**"
 
+    val OPENAPI_PROTECTED_PATHS = arrayOf(
+        "/openapi/api-docs", OPENAPI_API_DOCS_YAML, OPENAPI_API_DOCS_ALL, "$OPENAPI_API_DOCS_YAML/**",
+    )
+
     val NO_AUTH_PATHS = arrayOf(
         CAPTCHA,
         LOGIN,
@@ -91,8 +95,6 @@ object Http {
         WEBSITE_RELEASES,
         ARTICLE_LIST,
         ARTICLE_DETAIL,
-        OPENAPI_API_DOCS_YAML,
-        OPENAPI_API_DOCS_ALL,
         SWAGGER_UI_ALL,
         STATIC_OPENAPI_DOCS,
         WEBJARS,
@@ -112,6 +114,7 @@ object Http {
     )
 
     val AUTH_PATHS = arrayOf(
+        *OPENAPI_PROTECTED_PATHS,
         ARTICLE_PUBLISH,
         ARTICLE_PROMOTION,
         ARTICLE_LIKE,

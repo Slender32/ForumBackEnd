@@ -44,6 +44,10 @@ services:
         condition: service_healthy
     environment:
       SPRING_PROFILES_ACTIVE: dev
+      FORUM_OPENAPI_SERVER_URL: /api
+      # Nginx overwrites X-Real-IP; only Nginx exposes a host port.
+      SERVER_FORWARD_HEADERS_STRATEGY: native
+      SERVER_TOMCAT_REMOTEIP_REMOTE_IP_HEADER: X-Real-IP
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/forum
       SPRING_DATASOURCE_USERNAME: slender
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-123456}

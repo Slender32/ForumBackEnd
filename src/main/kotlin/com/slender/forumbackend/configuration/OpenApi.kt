@@ -29,17 +29,20 @@ import org.springdoc.core.customizers.GlobalOpenApiCustomizer
 import org.springdoc.core.models.GroupedOpenApi
 import org.springdoc.core.models.GroupedOpenApi.builder
 import org.springframework.context.annotation.Bean
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType.APPLICATION_JSON_VALUE
 
 @Configuration
-class OpenApi {
+class OpenApi(
+    @Value($$"${forum.openapi.server-url:/}")
+    private val serverUrl: String
+) {
     private companion object {
         const val API_TITLE = "论坛后端"
         const val API_DESCRIPTION = "后端 REST API文档"
         const val API_VERSION = "0.0.1"
         const val CONTACT_NAME = "后端"
-        const val SERVER_URL = "/"
         const val SERVER_DESCRIPTION = "当前服务器"
         const val SECURITY_SCHEME = "bearerAuth"
         const val SECURITY_SCHEME_NAME = "bearer"
@@ -67,7 +70,7 @@ class OpenApi {
         }
         servers = listOf(
             Server().apply {
-                url = SERVER_URL
+                url = serverUrl
                 description = SERVER_DESCRIPTION
             }
         )

@@ -16,6 +16,7 @@ import com.slender.forumbackend.constant.core.Http.Method.DELETE
 import com.slender.forumbackend.constant.core.Http.Method.GET
 import com.slender.forumbackend.constant.core.Http.Method.PUT
 import com.slender.forumbackend.constant.core.Http.NO_AUTH_PATHS
+import com.slender.forumbackend.constant.core.Http.OPENAPI_PROTECTED_PATHS
 import com.slender.forumbackend.constant.core.Http.TAG_LIST
 import com.slender.forumbackend.constant.core.Http.TAG_WILDCARD
 import com.slender.forumbackend.constant.core.Http.USERS_ARTICLE
@@ -98,7 +99,9 @@ class Security {
 
             disableCsrf()
             noSession()
+
             noAuthentication(*NO_AUTH_PATHS)
+            authentication("docs:read", *OPENAPI_PROTECTED_PATHS)
 
             appendFilter {
                 at<UsernamePasswordAuthenticationFilter>(passwordFilter)
