@@ -10,8 +10,10 @@ data class ArticleDetailData(
     @field:Schema(description = "文章标题")
     val title: String,
 
+    @field:Schema(description = "摘要")
     val summary: String = "",
 
+    @field:Schema(description = "封面图片地址")
     val cover: String = "",
 
     @field:Schema(description = "Markdown内容")
@@ -45,11 +47,14 @@ data class ArticleDetailData(
     val reactions: List<ArticleReactionData> = emptyList(),
 
     @field:Schema(description = "当前登录用户是否已点赞")
+    @get:Schema(description = "当前登录用户是否已点赞")
     val isLike: Boolean = false,
 
     @field:Schema(description = "当前登录用户是否已打赏")
+    @get:Schema(description = "当前登录用户是否已打赏")
     val isRewarded: Boolean = false,
 
     @field:Schema(description = "当前登录用户是否已收藏")
+    @get:Schema(description = "当前登录用户是否已收藏")
     val isFavorite: Boolean = false,
 )

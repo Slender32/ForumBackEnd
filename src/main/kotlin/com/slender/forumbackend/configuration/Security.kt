@@ -100,8 +100,8 @@ class Security {
             disableCsrf()
             noSession()
 
-            noAuthentication(*NO_AUTH_PATHS)
             authentication("docs:read", *OPENAPI_PROTECTED_PATHS)
+            noAuthentication(*NO_AUTH_PATHS)
 
             appendFilter {
                 at<UsernamePasswordAuthenticationFilter>(passwordFilter)

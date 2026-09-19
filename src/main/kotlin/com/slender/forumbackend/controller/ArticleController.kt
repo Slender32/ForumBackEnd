@@ -23,6 +23,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.servlet.http.HttpServletRequest
 import org.springdoc.core.annotations.ParameterObject
@@ -60,6 +61,7 @@ class ArticleController(
     )
     @SecurityRequirement(name = "bearerAuth")
     fun update(
+        @Parameter(description = "文章 ID")
         @PathVariable
         aid: Long,
 
@@ -67,6 +69,7 @@ class ArticleController(
         @Validated
         request: ArticleUpdateRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -75,10 +78,15 @@ class ArticleController(
     }
 
     @DeleteMapping("/{aid}")
+    @Operation(summary = "删除文章", description = "软删除文章，需要登录并通过文章操作权限校验。")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun delete(
+        @Parameter(description = "文章 ID")
         @PathVariable
         aid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -98,6 +106,7 @@ class ArticleController(
     )
     @SecurityRequirement(name = "bearerAuth")
     fun addPromotion(
+        @Parameter(description = "文章 ID")
         @PathVariable
         aid: Long,
 
@@ -105,6 +114,7 @@ class ArticleController(
         @Validated
         request: ArticlePromotionRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -113,10 +123,15 @@ class ArticleController(
     }
 
     @DeleteMapping("/promotion/{pid}")
+    @Operation(summary = "删除文章推荐", description = "需要登录并具有推荐管理权限。")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun deletePromotion(
+        @Parameter(description = "文章推荐 ID")
         @PathVariable
         pid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -125,13 +140,19 @@ class ArticleController(
     }
 
     @PostMapping("/{aid}/tags/{tid}")
+    @Operation(summary = "恢复文章标签关联", description = "恢复文章与标签的关联，需要通过文章操作权限校验。")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun restoreTag(
+        @Parameter(description = "文章 ID")
         @PathVariable
         aid: Long,
 
+        @Parameter(description = "标签 ID")
         @PathVariable
         tid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -140,13 +161,19 @@ class ArticleController(
     }
 
     @DeleteMapping("/{aid}/tags/{tid}")
+    @Operation(summary = "删除文章标签关联", description = "移除文章与标签的关联，需要通过文章操作权限校验。")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun deleteTag(
+        @Parameter(description = "文章 ID")
         @PathVariable
         aid: Long,
 
+        @Parameter(description = "标签 ID")
         @PathVariable
         tid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -167,13 +194,14 @@ class ArticleController(
                 ApiResponse(responseCode = "404", description = "1201 Article not found"),
             ]
     )
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun list(
         @ParameterObject
         @ModelAttribute
         @Validated
         articleListRequest: ArticleListRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache?
     ): Response<ArticleListData> {
@@ -190,13 +218,14 @@ class ArticleController(
                 ApiResponse(responseCode = "400", description = "1008 Invalid request"),
             ]
     )
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun search(
         @ParameterObject
         @ModelAttribute
         @Validated
         request: ArticleSearchRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache?,
     ): Response<ArticleListData> {
@@ -213,7 +242,7 @@ class ArticleController(
         responseCode = "200",
         description = "Success"
     )
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun suggestions(
         @ParameterObject
         @ModelAttribute
@@ -236,11 +265,12 @@ class ArticleController(
                 ApiResponse(responseCode = "404", description = "1201 Article not found"),
             ]
     )
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun content(
         @Parameter(description = "Article id")
         @PathVariable aid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache?,
 
@@ -271,6 +301,7 @@ class ArticleController(
         @Validated
         request: ArticlePublishRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<ArticlePublishData> {
@@ -297,6 +328,7 @@ class ArticleController(
         @Parameter(description = "Article id")
         aid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -328,6 +360,7 @@ class ArticleController(
         @Validated
         request: ArticleReactionRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -336,6 +369,9 @@ class ArticleController(
     }
 
     @DeleteMapping("/{aid}/reaction")
+    @Operation(summary = "取消文章表情回应", description = "删除当前用户对该文章的指定表情回应。")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun deleteReaction(
         @PathVariable
         @Parameter(description = "Article id")
@@ -345,6 +381,7 @@ class ArticleController(
         @Validated
         request: ArticleReactionRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -381,6 +418,7 @@ class ArticleController(
         @Validated
         request: ArticleRewardRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<ArticleRewardData> {
@@ -410,6 +448,7 @@ class ArticleController(
         @Validated
         request: ReportRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -433,6 +472,7 @@ class ArticleController(
         @Parameter(description = "Article id")
         aid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {

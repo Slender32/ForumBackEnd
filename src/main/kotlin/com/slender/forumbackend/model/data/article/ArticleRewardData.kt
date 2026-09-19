@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema
 data class ArticleRewardData(
     @field:Schema(description = "打赏后该文章的总打赏数")
     val rewardCount: Long,
+
     @field:Schema(description = "打赏后当前用户剩余的萌萌点")
     val remainingMoePoint: Long,
 )

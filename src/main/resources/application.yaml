@@ -32,7 +32,6 @@ spring:
             enable: true
 forum:
   rate-limit:
-    key-prefix: "RateLimit:public:v2:"
     browsing:
       capacity: 60
       refill-per-minute: 120

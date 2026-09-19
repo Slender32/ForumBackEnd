@@ -23,6 +23,8 @@ data class ContentReviewData(
     val reviewerId: Long?,
     @field:Schema(description = "审核备注")
     val reviewNote: String?,
+    @field:Schema(description = "创建时间，格式 yyyy-MM-ddTHH:mm:ss")
     val createTime: LocalDateTime?,
+    @field:Schema(description = "最后更新时间，格式 yyyy-MM-ddTHH:mm:ss")
     val updateTime: LocalDateTime?,
 )

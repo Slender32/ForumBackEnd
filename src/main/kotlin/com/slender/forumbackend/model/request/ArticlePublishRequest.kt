@@ -34,6 +34,7 @@ data class ArticlePublishRequest(
     val cover: String = "",
 
     @field:ArraySchema(
+        arraySchema = Schema(description = "文章标签列表，最多 10 个；不传或空列表表示无标签"),
         schema = Schema(implementation = ArticlePublishTagRequest::class),
         minItems = 0,
         maxItems = 10,

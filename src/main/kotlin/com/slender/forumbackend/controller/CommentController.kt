@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -49,7 +50,7 @@ class CommentController(
                 ApiResponse(responseCode = "404", description = "1201 文章不存在"),
             ]
     )
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun getCommentList(
         @PathVariable
         @Parameter(description = "文章ID")
@@ -60,6 +61,7 @@ class CommentController(
         @Validated
         request: CommentListRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache?,
     ): Response<CommentListData> {
@@ -87,6 +89,7 @@ class CommentController(
         @Validated
         request: CommentCreateRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<CommentCreateData> {
@@ -95,7 +98,11 @@ class CommentController(
     }
 
     @PutMapping("/comment/{cid}")
+    @Operation(summary = "修改评论", description = "修改评论正文，需要登录并通过评论操作权限校验。")
+    @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun updateComment(
+        @Parameter(description = "评论 ID")
         @PathVariable
         cid: Long,
 
@@ -103,6 +110,7 @@ class CommentController(
         @Validated
         request: CommentCreateRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -130,6 +138,7 @@ class CommentController(
         @Validated
         request: CommentReplyRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<CommentCreateData> {
@@ -150,7 +159,7 @@ class CommentController(
                 ApiResponse(responseCode = "404", description = "1301 评论不存在"),
             ]
     )
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun getReplyList(
         @PathVariable
         @Parameter(description = "评论ID，顶级或子评论均可")
@@ -161,6 +170,7 @@ class CommentController(
         @Validated
         request: CommentReplyListRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache?,
     ): Response<CommentReplyListData> {
@@ -190,6 +200,7 @@ class CommentController(
         @Validated
         request: ReportRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {
@@ -214,6 +225,7 @@ class CommentController(
         @Parameter(description = "评论ID")
         cid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<CommentDeleteData> {
@@ -236,6 +248,7 @@ class CommentController(
         @Parameter(description = "评论ID")
         cid: Long,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {

@@ -42,6 +42,8 @@ fun DependencyHandlerScope.runtime(){
     implementation("com.baomidou:mybatis-plus-jsqlparser:3.5.17")
     implementation("com.aliyun:alibabacloud-oss-v2:0.5.1")
     implementation("org.sejda.imageio:webp-imageio:0.1.6")
+    implementation("com.bucket4j:bucket4j_jdk17-core:8.14.0")
+    implementation("com.github.ben-manes.caffeine:caffeine")
 
     //relational dependencies
     implementation("org.flywaydb:flyway-database-postgresql")

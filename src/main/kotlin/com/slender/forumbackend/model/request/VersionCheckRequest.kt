@@ -1,5 +1,6 @@
 package com.slender.forumbackend.model.request
 
+import com.slender.forumbackend.toolkit.NumericVersion
 import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -13,12 +14,13 @@ data class VersionCheckRequest(
     @field:Pattern(regexp = "^(desktop|android)$", message = "平台必须是desktop或android")
     val platform: String,
 
-    @field:Schema(description = "当前客户端版本", example = "0.1.0")
+    @field:Schema(description = "当前客户端版本，按点分隔的非负整数逐段比较", example = "0.1.0")
     @field:NotBlank(message = "版本不能为空")
-    @field:Size(max = 32, message = "版本不能超过32字符")
+    @field:Size(max = NumericVersion.MAX_LENGTH, message = "版本不能超过64字符")
+    @field:Pattern(regexp = NumericVersion.PATTERN, message = "版本必须为点分隔的非负整数")
     val version: String,
 
-    @field:Schema(description = "当前客户端构建号")
+    @field:Schema(description = "当前客户端构建号，仅兼容保留，不参与版本比较")
     @field:Min(value = 0, message = "构建号不能小于0")
     val buildNumber: Long? = null,
 )

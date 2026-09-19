@@ -14,5 +14,6 @@ data class ArticleReactionData(
     val reactors: List<String>,
 
     @field:Schema(description = "当前登录用户是否使用了这个表情")
+    @get:Schema(description = "当前登录用户是否使用了这个表情")
     val isReact: Boolean = false,
 )

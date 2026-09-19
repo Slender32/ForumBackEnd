@@ -1,21 +1,23 @@
 package com.slender.forumbackend.controller
 
-import com.slender.forumbackend.facade.FileFacade
 import com.slender.forumbackend.constant.core.Message.Exception.IMAGE_COUNT_INVALID_ERROR
-import com.slender.forumbackend.model.data.file.FileData
+import com.slender.forumbackend.facade.FileFacade
 import com.slender.forumbackend.model.data.Response
 import com.slender.forumbackend.model.data.Response.Companion.success
+import com.slender.forumbackend.model.data.file.FileData
 import com.slender.forumbackend.model.data.file.FileSizeData
-import com.slender.forumbackend.model.data.file.ImageUploadData
 import com.slender.forumbackend.model.data.file.ImageMetadataData
+import com.slender.forumbackend.model.data.file.ImageUploadData
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.Size
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -24,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
-import org.springframework.validation.annotation.Validated
 
 @RestController
 @RequestMapping("/files")
@@ -80,6 +81,8 @@ class FileController(
 
     @GetMapping("/image/metadata")
     @Operation(summary = "获取图片元数据", description = "根据图片 URL 查询图片元数据，未找到时返回 null")
+    @SecurityRequirements
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun imageMetadata(
         @Parameter(description = "图片访问 URL")
         @RequestParam url: String

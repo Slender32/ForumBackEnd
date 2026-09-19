@@ -49,5 +49,13 @@ release-id.txt
 WORKBENCH_DEPLOYMENT.md
 DEPLOYMENT.md
 /tmp
-/src/test
+/src/test/**
+!/src/test/**/
+!/src/test/kotlin/com/slender/forumbackend/test/PublicRateLimitTest.kt
+!/src/test/kotlin/com/slender/forumbackend/test/VersionCheckTest.kt
+!/src/test/kotlin/com/slender/forumbackend/test/VersionCheckIntegrationTest.kt
+!/src/test/kotlin/com/slender/forumbackend/test/OpenApiAccessTest.kt
+!/src/test/kotlin/com/slender/forumbackend/test/PointsAndAnnouncementsTest.kt
+!/src/test/kotlin/com/slender/forumbackend/RateLimitIsolationListener.kt
+!/src/test/resources/META-INF/spring.factories
 /src/main/resources/db/dev-migration

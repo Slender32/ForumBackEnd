@@ -10,5 +10,6 @@ data class ArticleTagData(
     @field:Schema(description = "标签名", example = "Kotlin")
     val name: String,
 
+    @field:Schema(description = "32 位 ARGB 颜色值，使用有符号整数表示")
     val color: Int,
 )

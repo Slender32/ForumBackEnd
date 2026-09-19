@@ -6,8 +6,9 @@ import com.slender.forumbackend.model.data.Response.Companion.success
 import com.slender.forumbackend.model.data.VersionCheckData
 import com.slender.forumbackend.model.request.VersionCheckRequest
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.validation.annotation.Validated
@@ -23,9 +24,9 @@ class AppController(
     private val appFacade: AppFacade,
 ) {
     @GetMapping("/version/check")
-    @Operation(summary = "检查客户端版本", description = "当前阶段返回无更新占位结果。")
+    @Operation(summary = "检查客户端版本", description = "查询对应平台已启用的最高版本，按数字逐段比较版本号；构建号不参与比较。")
     @ApiResponse(responseCode = "200", description = "检查成功")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun checkVersion(
         @ParameterObject
         @ModelAttribute

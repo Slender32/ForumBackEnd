@@ -1,16 +1,16 @@
 package com.slender.forumbackend.controller
 
+import com.slender.forumbackend.facade.TagFacade
 import com.slender.forumbackend.model.data.Response
 import com.slender.forumbackend.model.data.Response.Companion.success
 import com.slender.forumbackend.model.data.article.TagDetailData
 import com.slender.forumbackend.model.data.article.TagListData
 import com.slender.forumbackend.model.request.TagListRequest
-import com.slender.forumbackend.facade.TagFacade
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
-import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springdoc.core.annotations.ParameterObject
 import org.springframework.validation.annotation.Validated
@@ -29,7 +29,7 @@ class TagController(
     @GetMapping("/list")
     @Operation(summary = "标签列表", description = "keyword 为空返回热门标签。支持匿名访问。")
     @ApiResponse(responseCode = "200", description = "成功")
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun list(
         @ParameterObject
         @ModelAttribute
@@ -47,7 +47,7 @@ class TagController(
             ApiResponse(responseCode = "400", description = "1206 标签不存在"),
         ]
     )
-    @SecurityRequirement(name = "bearerAuth")
+    @SecurityRequirements
     fun detail(
         @PathVariable
         @Parameter(description = "标签ID")

@@ -16,5 +16,6 @@ data class ChatMessageSendRequest(
     @field:NotBlank(message = "clientMessageId 不能为空")
     @field:Size(max = 64, message = "clientMessageId 不能超过64字")
     val clientMessageId: String,
+    @field:Schema(description = "消息类型")
     val messageType: MessageType = MessageType.TEXT,
 )

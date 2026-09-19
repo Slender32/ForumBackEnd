@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties("forum.rate-limit")
 class PublicRateLimitProperties {
-    var keyPrefix: String = "RateLimit:public:v2:"
     var browsing = Bucket(60, 120)
     var search = Bucket(10, 30)
     var login = Bucket(10, 10)

@@ -1,13 +1,14 @@
 package com.slender.forumbackend.controller
 
+import com.slender.forumbackend.facade.NoticeFacade
 import com.slender.forumbackend.model.cache.UserCache
 import com.slender.forumbackend.model.data.Response
 import com.slender.forumbackend.model.data.Response.Companion.success
 import com.slender.forumbackend.model.data.notice.CommentNoticeListData
 import com.slender.forumbackend.model.request.CommentNoticeListRequest
 import com.slender.forumbackend.model.request.CommentNoticeReadRequest
-import com.slender.forumbackend.facade.NoticeFacade
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
@@ -43,6 +44,7 @@ class NoticeController(
         @Validated
         request: CommentNoticeListRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<CommentNoticeListData> {
@@ -64,6 +66,7 @@ class NoticeController(
         @Validated
         request: CommentNoticeReadRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {

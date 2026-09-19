@@ -14,5 +14,6 @@ data class ConversationListRequest(
     val cursorLastMessageTime: Long? = null,
     @field:Min(1)
     @field:Max(50)
+    @field:Schema(description = "每页数量，范围 1..50，默认 20")
     val size: Int = 20,
 )

@@ -1,5 +1,6 @@
 package com.slender.forumbackend.controller
 
+import com.slender.forumbackend.facade.ConversationFacade
 import com.slender.forumbackend.model.cache.UserCache
 import com.slender.forumbackend.model.data.Response
 import com.slender.forumbackend.model.data.Response.Companion.success
@@ -8,12 +9,11 @@ import com.slender.forumbackend.model.data.conversation.ChatMessageSendData
 import com.slender.forumbackend.model.data.conversation.ConversationCreateData
 import com.slender.forumbackend.model.data.conversation.ConversationListData
 import com.slender.forumbackend.model.request.ChatMessageListRequest
-import com.slender.forumbackend.model.request.ChatMessageSinceRequest
 import com.slender.forumbackend.model.request.ChatMessageSendRequest
+import com.slender.forumbackend.model.request.ChatMessageSinceRequest
 import com.slender.forumbackend.model.request.ConversationCreateRequest
 import com.slender.forumbackend.model.request.ConversationListRequest
 import com.slender.forumbackend.model.request.ConversationReadRequest
-import com.slender.forumbackend.facade.ConversationFacade
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -52,6 +52,7 @@ class ConversationController(
         @Validated
         request: ConversationListRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<ConversationListData> {
@@ -75,6 +76,7 @@ class ConversationController(
         @Validated
         request: ConversationCreateRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<ConversationCreateData> {
@@ -102,6 +104,7 @@ class ConversationController(
         @Validated
         request: ChatMessageListRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<ChatMessageListData> {
@@ -111,6 +114,7 @@ class ConversationController(
     @GetMapping("/{conversationId}/message/since")
     @Operation(summary = "增量同步聊天消息", description = "返回 messageId 大于 afterMessageId 的消息，按消息 ID 正序。")
     @SecurityRequirement(name = "bearerAuth")
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun listMessagesSince(
         @PathVariable
         @Parameter(description = "会话 ID")
@@ -121,6 +125,7 @@ class ConversationController(
         @Validated
         request: ChatMessageSinceRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<ChatMessageListData> {
@@ -148,6 +153,7 @@ class ConversationController(
         @Validated
         request: ChatMessageSendRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<ChatMessageSendData> {
@@ -174,6 +180,7 @@ class ConversationController(
         @Validated
         request: ConversationReadRequest,
 
+        @Parameter(hidden = true)
         @AuthenticationPrincipal
         userCache: UserCache,
     ): Response<Unit> {

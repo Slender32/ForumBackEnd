@@ -20,5 +20,6 @@ data class ArticleCommentData(
     val likeCount: Int,
 
     @field:Schema(description = "当前登录用户是否已点赞此评论")
+    @get:Schema(description = "当前登录用户是否已点赞此评论")
     val isLike: Boolean = false,
 )

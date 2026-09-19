@@ -47,5 +47,6 @@ data class ArticleItemData(
     val reactions: List<ArticleReactionData>,
 
     @field:Schema(description = "当前登录用户是否已点赞此文章")
+    @get:Schema(description = "当前登录用户是否已点赞此文章")
     val isLike: Boolean = false,
 )

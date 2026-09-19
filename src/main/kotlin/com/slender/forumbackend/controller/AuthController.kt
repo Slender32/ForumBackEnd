@@ -9,13 +9,14 @@ import com.slender.forumbackend.model.data.Response
 import com.slender.forumbackend.model.data.Response.Companion.success
 import com.slender.forumbackend.model.data.UserData
 import com.slender.forumbackend.model.request.CaptchaRequest
-import com.slender.forumbackend.model.request.RegisterRequest
 import com.slender.forumbackend.model.request.ForgotPasswordRequest
+import com.slender.forumbackend.model.request.RegisterRequest
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.security.SecurityRequirements
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.validation.annotation.Validated
@@ -39,6 +40,7 @@ class AuthController(
             ApiResponse(responseCode = "400", description = "1008 请求参数错误"),
         ]
     )
+    @SecurityRequirements
     fun captcha(
         @RequestBody
         @Validated
@@ -49,6 +51,9 @@ class AuthController(
     }
 
     @PostMapping("/forgot-password")
+    @Operation(summary = "通过邮箱验证码重置密码", description = "使用邮箱验证码设置新密码，无需登录。")
+    @SecurityRequirements
+    @ApiResponse(responseCode = "200", description = "操作成功，code 为 0；data 结构见响应模型", useReturnTypeSchema = true)
     fun forgotPassword(
         @RequestBody
         @Validated
@@ -68,6 +73,7 @@ class AuthController(
                 ApiResponse(responseCode = "409", description = "1102 邮箱已注册"),
             ]
     )
+    @SecurityRequirements
     fun register(
         @RequestBody
         @Validated
@@ -116,6 +122,7 @@ class AuthController(
             ApiResponse(responseCode = "404", description = "1101 用户不存在"),
         ]
     )
+    @SecurityRequirement(name = "bearerAuth")
     fun me(
         @Parameter(hidden = true)
         @AuthenticationPrincipal

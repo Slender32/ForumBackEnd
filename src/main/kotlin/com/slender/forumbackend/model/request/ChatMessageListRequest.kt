@@ -10,8 +10,10 @@ data class ChatMessageListRequest(
     @field:Min(-1)
     val cursorMessageId: Long = -1L,
     @field:Min(0)
+    @field:Schema(description = "上一页游标消息发送时间戳，单位毫秒；首次请求不传")
     val cursorSendTime: Long? = null,
     @field:Min(1)
     @field:Max(50)
+    @field:Schema(description = "每页数量，范围 1..50，默认 30")
     val size: Int = 30,
 )
