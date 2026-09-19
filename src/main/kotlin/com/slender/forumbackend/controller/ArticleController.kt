@@ -49,6 +49,16 @@ class ArticleController(
 ) {
 
     @PutMapping("/{aid}")
+    @Operation(summary = "Update article", description = "Update article content and tags.")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "Success"),
+            ApiResponse(responseCode = "400", description = "1008 Invalid request; 1206 Invalid article tags"),
+            ApiResponse(responseCode = "401", description = "Token missing or expired"),
+            ApiResponse(responseCode = "404", description = "1201 Article not found"),
+        ]
+    )
+    @SecurityRequirement(name = "bearerAuth")
     fun update(
         @PathVariable
         aid: Long,
@@ -250,7 +260,7 @@ class ArticleController(
         value =
             [
                 ApiResponse(responseCode = "200", description = "Published successfully"),
-                ApiResponse(responseCode = "400", description = "1008 Invalid request"),
+                ApiResponse(responseCode = "400", description = "1008 Invalid request; 1206 Invalid article tags"),
                 ApiResponse(responseCode = "401", description = "Token missing or expired"),
                 ApiResponse(responseCode = "500", description = "1500 Internal error"),
             ]

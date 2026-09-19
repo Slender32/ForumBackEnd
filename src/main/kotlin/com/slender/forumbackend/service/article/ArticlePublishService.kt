@@ -3,6 +3,7 @@ package com.slender.forumbackend.service.article
 import com.slender.forumbackend.component.article.ArticleFactory
 import com.slender.forumbackend.constant.enumeration.article.ArticleStatus
 import com.slender.forumbackend.exception.InvalidRequestException
+import com.slender.forumbackend.exception.ArticleTagInvalidException
 import com.slender.forumbackend.library.timestamp
 import com.slender.forumbackend.model.data.article.ArticlePublishData
 import com.slender.forumbackend.model.request.ArticlePublishRequest
@@ -25,9 +26,11 @@ class ArticlePublishService(
     private val articleFactory: ArticleFactory,
     private val moderation: ContentModerationPolicy,
     private val reviews: ContentReviewWriter,
+    private val users: com.slender.forumbackend.repository.user.UserWriteRepository,
 ) {
     fun publish(authorId: Long, request: ArticlePublishRequest): ArticlePublishData {
-        require(request.tags.size <= TAG_LIMIT)
+        if (request.tags.size > TAG_LIMIT)
+            throw ArticleTagInvalidException("文章标签数量不能超过 $TAG_LIMIT")
         val createTime = now()
         val title = moderation.moderate(request.title)
         val summary = moderation.moderate(request.summary)
@@ -39,15 +42,11 @@ class ArticlePublishService(
             listOf(title, summary, content).any { it.status == ModerationStatus.REVIEW_REQUIRED }
         val normalized =
             request.copy(title = title.text, summary = summary.text, content = content.text)
-        val articleId =
-            articleContentRepository.createArticle(
-                articleFactory.create(
-                    authorId,
-                    normalized,
-                    createTime,
-                    if (reviewRequired) ArticleStatus.Draft else ArticleStatus.Published,
-                )
-            )
+        val article = articleFactory.create(
+            authorId, normalized, createTime,
+            if (reviewRequired) ArticleStatus.Draft else ArticleStatus.Published,
+        )
+        val articleId = articleContentRepository.createArticle(article)
 
         articleContentRepository.createContent(articleId, content.text)
         articleStatisticRepository.createStatistic(articleId)
@@ -67,14 +66,17 @@ class ArticlePublishService(
                 authorId,
                 mapOf(
                     "articleId" to articleId,
-                    "title" to normalized.title,
-                    "summary" to normalized.summary,
+                    "title" to article.title,
+                    "summary" to article.summary,
                     "content" to normalized.content,
-                    "cover" to normalized.cover,
+                    "cover" to article.cover,
                     "tags" to normalized.tags,
+                    "operation" to "CREATE",
                 ),
+                content = normalized.content,
             )
 
+        if (!reviewRequired) users.addPublishedArticleCount(authorId, 1)
         return ArticlePublishData(articleId = articleId, publishTime = createTime.timestamp)
     }
 

@@ -2,8 +2,10 @@ package com.slender.forumbackend.facade
 
 import com.slender.forumbackend.model.request.CaptchaRequest
 import com.slender.forumbackend.model.request.RegisterRequest
+import com.slender.forumbackend.model.request.ForgotPasswordRequest
 import com.slender.forumbackend.component.common.CaptchaGenerator
 import com.slender.forumbackend.service.auth.UserRegistrationService
+import com.slender.forumbackend.service.auth.PasswordResetService
 import com.slender.forumbackend.service.auth.UserTokenService
 import com.slender.forumbackend.service.auth.CurrentUserQueryService
 import org.springframework.stereotype.Service
@@ -15,10 +17,14 @@ class AuthFacade(
     private val userRegistrationService: UserRegistrationService,
     private val userTokenService: UserTokenService,
     private val currentUserQueryService: CurrentUserQueryService,
+    private val passwordResetService: PasswordResetService,
 ) {
     fun sendCaptcha(captchaRequest: CaptchaRequest) = captchaGenerator.sendCaptcha(captchaRequest)
     @Transactional
     fun register(registerRequest: RegisterRequest) = userRegistrationService.register(registerRequest)
+    fun resetPassword(request: ForgotPasswordRequest) = passwordResetService.reset(request)
     fun refresh(uid: Long) = userTokenService.refresh(uid)
     fun currentUser(uid: Long) = currentUserQueryService.current(uid)
 }
+
+

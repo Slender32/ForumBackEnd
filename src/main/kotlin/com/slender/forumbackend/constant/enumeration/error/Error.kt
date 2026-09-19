@@ -1,6 +1,8 @@
 package com.slender.forumbackend.constant.enumeration.error
 
+import com.slender.forumbackend.constant.core.Message.Exception.ALREADY_CHECKED_IN_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.ACCESS_TOKEN_EXPIRE_ERROR
+import com.slender.forumbackend.constant.core.Message.Exception.ANNOUNCEMENT_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.ADMIN_RESOURCE_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.ARTICLE_ALREADY_REWARDED_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.ARTICLE_CONTENT_INVALID_ERROR
@@ -15,6 +17,7 @@ import com.slender.forumbackend.constant.core.Message.Exception.COMMENT_DEPTH_EX
 import com.slender.forumbackend.constant.core.Message.Exception.COMMENT_FORBIDDEN_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.COMMENT_NOT_FOUND_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.CONVERSATION_NOT_FOUND_ERROR
+import com.slender.forumbackend.constant.core.Message.Exception.CONVERSATION_FOLLOW_REQUIRED_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.EMAIL_OR_PASSWORD_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.EMAIL_REGISTERED_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.FILE_NOT_FOUND_ERROR
@@ -36,6 +39,9 @@ import com.slender.forumbackend.constant.core.Message.Exception.UPLOAD_TOO_LARGE
 import com.slender.forumbackend.constant.core.Message.Exception.UPLOAD_TYPE_UNSUPPORTED_ERROR
 import com.slender.forumbackend.constant.core.Message.Exception.USER_NOT_FOUND_ERROR
 import org.springframework.http.HttpStatus
+import org.springframework.http.HttpStatus.TOO_MANY_REQUESTS
+import org.springframework.http.HttpStatus.PAYLOAD_TOO_LARGE
+import org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.CONFLICT
 import org.springframework.http.HttpStatus.FORBIDDEN
@@ -44,6 +50,8 @@ import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 
 enum class Error(val code: Int, val status: HttpStatus, val message: String) {
+    ALREADY_CHECKED_IN(1104, CONFLICT, ALREADY_CHECKED_IN_ERROR),
+    ANNOUNCEMENT_NOT_FOUND(1901, NOT_FOUND, ANNOUNCEMENT_NOT_FOUND_ERROR),
     TOKEN_MISSING(1001, UNAUTHORIZED, TOKEN_NOT_FOUND),
     ACCESS_TOKEN_EXPIRED(1002, UNAUTHORIZED, ACCESS_TOKEN_EXPIRE_ERROR),
     REFRESH_TOKEN_EXPIRED(1003, UNAUTHORIZED, REFRESH_TOKEN_EXPIRE_ERROR),
@@ -68,15 +76,16 @@ enum class Error(val code: Int, val status: HttpStatus, val message: String) {
     COMMENT_DEPTH_EXCEEDED(1303, BAD_REQUEST, COMMENT_DEPTH_EXCEEDED_ERROR),
     COMMENT_FORBIDDEN(1304, FORBIDDEN, COMMENT_FORBIDDEN_ERROR),
     FILE_NOT_FOUND(1401, NOT_FOUND, FILE_NOT_FOUND_ERROR),
-    UPLOAD_TOO_LARGE(1402, HttpStatus.PAYLOAD_TOO_LARGE, UPLOAD_TOO_LARGE_ERROR),
-    UPLOAD_TYPE_UNSUPPORTED(1403, HttpStatus.UNSUPPORTED_MEDIA_TYPE, UPLOAD_TYPE_UNSUPPORTED_ERROR),
+    UPLOAD_TOO_LARGE(1402, PAYLOAD_TOO_LARGE, UPLOAD_TOO_LARGE_ERROR),
+    UPLOAD_TYPE_UNSUPPORTED(1403, UNSUPPORTED_MEDIA_TYPE, UPLOAD_TYPE_UNSUPPORTED_ERROR),
     UPLOAD_FAILED(1404, INTERNAL_SERVER_ERROR, UPLOAD_FAILED_ERROR),
     INTERNAL(1500, INTERNAL_SERVER_ERROR, INTERNAL_ERROR),
     CONVERSATION_NOT_FOUND(1501, NOT_FOUND, CONVERSATION_NOT_FOUND_ERROR),
     MESSAGE_SEND_FAILED(1502, INTERNAL_SERVER_ERROR, MESSAGE_SEND_FAILED_ERROR),
     MESSAGE_TARGET_INVALID(1503, FORBIDDEN, MESSAGE_TARGET_INVALID_ERROR),
+    CONVERSATION_FOLLOW_REQUIRED(1504, FORBIDDEN, CONVERSATION_FOLLOW_REQUIRED_ERROR),
     REPORT_DUPLICATED(1601, CONFLICT, REPORT_DUPLICATED_ERROR),
     REPORT_REASON_INVALID(1602, BAD_REQUEST, REPORT_REASON_INVALID_ERROR),
-    RATE_LIMITED(1701, HttpStatus.TOO_MANY_REQUESTS, RATE_LIMITED_ERROR),
+    RATE_LIMITED(1701, TOO_MANY_REQUESTS, RATE_LIMITED_ERROR),
     ADMIN_RESOURCE_NOT_FOUND(1801, NOT_FOUND, ADMIN_RESOURCE_NOT_FOUND_ERROR),
 }

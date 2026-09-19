@@ -15,7 +15,9 @@ import org.apache.ibatis.annotations.Param
 
 @Mapper
 interface ArticleMapper : BaseMapper<Article> {
-    fun selectVisibleById(@Param("articleId") articleId: Long): Article?
+    fun selectVisibleById(
+        @Param("articleId") articleId: Long
+    ): Article?
 
     fun selectVisiblePage(
         @Param("cursorPublishTime") cursorPublishTime: LocalDateTime?,
@@ -55,7 +57,12 @@ interface ArticleMapper : BaseMapper<Article> {
 interface ArticleContentMapper : BaseMapper<ArticleContent>
 
 @Mapper
-interface ArticleStatisticMapper : BaseMapper<ArticleStatistic>
+interface ArticleStatisticMapper : BaseMapper<ArticleStatistic> {
+    fun incrementRewardCount(
+        @Param("articleId") articleId: Long,
+        @Param("amount") amount: Int,
+    ): Int
+}
 
 @Mapper
 interface ArticlePromotionMapper : BaseMapper<ArticlePromotion> {

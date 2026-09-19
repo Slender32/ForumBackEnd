@@ -1,6 +1,7 @@
 package com.slender.forumbackend.service
 
 import com.slender.forumbackend.exception.ConversationForbiddenException
+import com.slender.forumbackend.exception.ConversationFollowRequiredException
 import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.exception.MessageTargetInvalidException
 import com.slender.forumbackend.library.timestamp
@@ -32,6 +33,8 @@ import com.slender.forumbackend.model.request.ConversationReadRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.net.URI
+import com.slender.forumbackend.model.entity.conversation.MessageType
 
 @Service
 class ConversationService(
@@ -52,7 +55,9 @@ class ConversationService(
         val hasMore = fetched.size > request.size
         val conversations = fetched.take(request.size)
         val items = conversations.toConversationData(userId)
-        val totalUnreadCount = items.sumOf { it.unreadCount }
+        val totalUnreadCount = conversationRepository.findAllByUser(userId)
+            .toConversationData(userId)
+            .sumOf { it.unreadCount }
         return ConversationListData(
             items = items,
             nextCursor = if (hasMore) conversations.lastOrNull()?.let {
@@ -64,9 +69,14 @@ class ConversationService(
     }
 
     fun create(userId: Long, request: ConversationCreateRequest): ConversationCreateData {
-        if (request.peerUid == userId || request.peerUid <= 0) throw InvalidRequestException("不能和自己创建会话")
+        if (request.peerUid == userId || request.peerUid <= 0) {
+            throw InvalidRequestException("不能和自己创建会话")
+        }
 
         val peer = userReadRepository.findByIdOrThrow(request.peerUid)
+        if (userReadRepository.findFollow(userId, peer.uid) == null) {
+            throw ConversationFollowRequiredException()
+        }
         val now = LocalDateTime.now()
         val (conversation, created) = conversationRepository.findOrCreate(userId, request.peerUid, now)
         return ConversationCreateData(
@@ -134,7 +144,17 @@ class ConversationService(
         if (content.isEmpty() || content.length > 2000 || clientMessageId.isEmpty())
             throw InvalidRequestException("消息内容或 clientMessageId 不合法")
 
+        if (request.messageType == MessageType.IMAGE) {
+            val uri = runCatching { URI(content) }.getOrNull()
+            if (uri == null || uri.scheme?.lowercase() !in setOf("http", "https") || uri.host.isNullOrBlank()) {
+                throw InvalidRequestException("图片消息必须使用有效的 HTTP(S) URL")
+            }
+        }
         chatMessageRepository.findBySenderAndClientId(userId, clientMessageId)?.let { existing ->
+            if (existing.conversationId != conversationId || existing.content != content ||
+                existing.messageType != request.messageType) {
+                throw InvalidRequestException("clientMessageId 已用于其他消息")
+            }
             val sender = userReadRepository.findById(existing.senderId)
                 ?: throw MessageTargetInvalidException()
             return sendResult(conversation, userId, existing, sender, clientMessageId, false)
@@ -145,6 +165,7 @@ class ConversationService(
                 conversationId = conversationId,
                 senderId = userId,
                 content = content,
+                messageType = request.messageType,
                 clientMessageId = clientMessageId,
                 createTime = now,
             )
@@ -238,7 +259,7 @@ class ConversationService(
                 conversationId = conversation.conversationId,
                 peer = peer?.toArticleUserData()
                     ?: ArticleUserData(conversation.peerId(currentUserId), "", "", 0),
-                lastMessage = lastMessage?.content ?: "",
+                lastMessage = if (lastMessage?.messageType == MessageType.IMAGE) "[图片]" else lastMessage?.content ?: "",
                 lastMessageTime = conversation.lastMessageTime?.timestamp
                     ?: conversation.createTime.timestamp,
                 unreadCount = chatMessageRepository.countUnread(
@@ -257,6 +278,8 @@ class ConversationService(
             sender = senders[senderId]?.toArticleUserData() ?: ArticleUserData(senderId, "", "", 0),
             content = content,
             sendTime = createTime.timestamp,
+            messageType = messageType,
+            clientMessageId = clientMessageId.orEmpty(),
         )
 
 }

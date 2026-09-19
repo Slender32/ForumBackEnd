@@ -11,7 +11,7 @@ data class ArticleStatistic(
     val likeCount: Int,
     val commentCount: Int,
     val viewCount: Int,
-    val rewardCount: Int,
+    val rewardCount: Long,
 ){
     constructor(articleId: Long): this(
         articleId,

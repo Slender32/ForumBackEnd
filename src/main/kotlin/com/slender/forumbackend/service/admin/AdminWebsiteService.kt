@@ -52,16 +52,27 @@ class AdminWebsiteService(
     fun release(id: Long) =
         releaseRepository.find(id) ?: throw AdminResourceNotFoundException("Website 版本不存在")
 
-    fun addIntro(req: WebsiteIntroductionRequest, op: Long) =
-        introductionRepository.insert(
-            WebsiteIntroduction(0, req.title.trim(),
+    fun addIntro(req: WebsiteIntroductionRequest, op: Long): Int {
+        val now = LocalDateTime.now()
+        return introductionRepository.insert(
+            WebsiteIntroduction(
+                0, req.title.trim(),
                 req.description.trim(),
                 req.imageUrl.trim(), req.sortOrder, req.enabled,
-                null)
+                null, createTime = now, updateTime = now
+            )
         ).also {
             invalidate()
-            audit.log(op, "website:manage", "website_introduction", null, "CREATE")
+            audit.log(
+                op,
+                "website:manage",
+                "website_introduction",
+                null,
+                "CREATE"
+            )
         }
+
+    }
 
     fun updateIntro(id: Long, req: WebsiteIntroductionRequest, op: Long): Int {
         val current = introductionRepository.find(id) ?: throw AdminResourceNotFoundException("Website 介绍不存在")
@@ -76,7 +87,13 @@ class AdminWebsiteService(
             )
         )
         invalidate()
-        audit.log(op, "website:manage", "website_introduction", id.toString(), "UPDATE")
+        audit.log(
+            op,
+            "website:manage",
+            "website_introduction",
+            id.toString(),
+            "UPDATE"
+        )
         return result
     }
 
@@ -84,15 +101,44 @@ class AdminWebsiteService(
         introductionRepository.markDeleted(id, LocalDateTime.now())
             .also {
                 invalidate()
-                audit.log(op, "website:manage", "website_introduction", id.toString(), "DELETE")
+                audit.log(
+                    op,
+                    "website:manage",
+                    "website_introduction",
+                    id.toString(),
+                    "DELETE"
+                )
             }
 
-    fun addRelease(req: WebsiteReleaseRequest, op: Long) =
-        releaseRepository.insert(WebsiteRelease(0, req.platform, req.version, req.title, req.releaseNotes, req.sha256.lowercase(), req.downloadUrl, req.releaseDate ?: LocalDateTime.now(), req.enabled, null))
+    fun addRelease(req: WebsiteReleaseRequest, op: Long): Int {
+        val now = LocalDateTime.now()
+        return releaseRepository.insert(
+            WebsiteRelease(
+                0,
+                req.platform,
+                req.version,
+                req.title,
+                req.releaseNotes,
+                req.sha256.lowercase(),
+                req.downloadUrl,
+                req.releaseDate ?: now,
+                req.enabled,
+                null,
+                createTime = now,
+                updateTime = now
+            )
+        )
             .also {
                 invalidate()
-                audit.log(op, "website:manage", "website_release", null, "CREATE")
+                audit.log(
+                    op,
+                    "website:manage",
+                    "website_release",
+                    null,
+                    "CREATE"
+                )
             }
+    }
 
     fun updateRelease(id: Long, req: WebsiteReleaseRequest, op: Long): Int {
         val current = releaseRepository.find(id) ?: throw AdminResourceNotFoundException("Website 版本不存在")
@@ -109,7 +155,13 @@ class AdminWebsiteService(
                 updateTime = LocalDateTime.now())
         )
         invalidate()
-        audit.log(op, "website:manage", "website_release", id.toString(), "UPDATE")
+        audit.log(
+            op,
+            "website:manage",
+            "website_release",
+            id.toString(),
+            "UPDATE"
+        )
         return result
     }
 
@@ -117,6 +169,12 @@ class AdminWebsiteService(
         releaseRepository.markDeleted(id, LocalDateTime.now())
             .also {
                 invalidate()
-                audit.log(op, "website:manage", "website_release", id.toString(), "DELETE")
+                audit.log(
+                    op,
+                    "website:manage",
+                    "website_release",
+                    id.toString(),
+                    "DELETE"
+                )
             }
 }

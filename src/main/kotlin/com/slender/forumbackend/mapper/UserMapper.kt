@@ -13,13 +13,30 @@ interface UserMapper : BaseMapper<User>
 
 @Mapper
 interface UserStatisticsMapper : BaseMapper<UserStatistics> {
-    fun deductMoePoint(@Param("userId") userId: Long, @Param("amount") amount: Int): Int
+    fun addPublishedArticleCount(
+        @Param("userId") userId: Long,
+        @Param("delta") delta: Int
+    ): Int
 
-    fun addMoePoint(@Param("userId") userId: Long, @Param("amount") amount: Int): Int
+    fun deductMoePoint(
+        @Param("userId") userId: Long,
+        @Param("amount") amount: Long
+    ): Int
 
-    fun addFollowCount(@Param("userId") userId: Long, @Param("delta") delta: Int): Int
+    fun addMoePoint(
+        @Param("userId") userId: Long,
+        @Param("amount") amount: Long
+    ): Int
 
-    fun addFanCount(@Param("userId") userId: Long, @Param("delta") delta: Int): Int
+    fun addFollowCount(
+        @Param("userId") userId: Long,
+        @Param("delta") delta: Int
+    ): Int
+
+    fun addFanCount(
+        @Param("userId") userId: Long,
+        @Param("delta") delta: Int
+    ): Int
 }
 
 @Mapper

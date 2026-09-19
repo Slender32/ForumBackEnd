@@ -1,5 +1,6 @@
 package com.slender.forumbackend.model.request
 
+import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
@@ -16,4 +17,8 @@ data class ArticleUpdateRequest(
 
     @field:Size(max = 1024)
     val cover: String = "",
+
+    @field:Valid
+    @field:Size(max = 10)
+    val tags: List<ArticlePublishTagRequest>? = null,
 )

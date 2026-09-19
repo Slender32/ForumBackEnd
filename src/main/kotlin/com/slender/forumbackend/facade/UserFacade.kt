@@ -14,6 +14,7 @@ import com.slender.forumbackend.service.user.UserFollowService
 import com.slender.forumbackend.service.user.UserProfileService
 import com.slender.forumbackend.service.user.UserAccountService
 import com.slender.forumbackend.service.user.UserReportService
+import com.slender.forumbackend.service.user.UserPointsService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -24,7 +25,12 @@ class UserFacade(
     private val userContentQueryService: UserContentQueryService,
     private val userFollowService: UserFollowService,
     private val userReportService: UserReportService,
+    private val userPointsService: UserPointsService,
 ) {
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
+    fun points(uid: Long, page: Int, size: Int) = userPointsService.points(uid, page, size)
+    @Transactional
+    fun checkIn(uid: Long) = userPointsService.checkIn(uid)
     fun updateAvatar(uid: Long, request: UpdateAvatarRequest) =
         userAccountService.updateAvatar(uid, request)
 
@@ -52,6 +58,7 @@ class UserFacade(
     fun listComments(uid: Long, request: UserCommentListRequest) =
         userContentQueryService.listComments(uid, request)
 
+    @Transactional(readOnly = true, isolation = org.springframework.transaction.annotation.Isolation.REPEATABLE_READ)
     fun listFavorites(
         uid: Long,
         request: FavoriteListRequest,

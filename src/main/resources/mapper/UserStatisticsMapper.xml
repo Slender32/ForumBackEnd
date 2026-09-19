@@ -4,6 +4,12 @@
   "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.slender.forumbackend.mapper.UserStatisticsMapper">
 
+    <update id="addPublishedArticleCount">
+        UPDATE user_stats
+        SET published_article_count = GREATEST(published_article_count + #{delta}, 0)
+        WHERE user_id = #{userId}
+    </update>
+
     <update id="deductMoePoint">
         UPDATE user_stats
         SET moe_point = moe_point - #{amount}

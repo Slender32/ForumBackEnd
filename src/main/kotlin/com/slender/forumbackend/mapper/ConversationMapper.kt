@@ -10,6 +10,10 @@ import java.time.LocalDateTime
 
 @Mapper
 interface ConversationMapper : BaseMapper<Conversation> {
+    fun selectAllByUser(
+        @Param("userId") userId: Long
+    ): List<Conversation>
+
     fun selectPageByUser(
         @Param("userId") userId: Long,
         @Param("cursorConversationId") cursorConversationId: Long,

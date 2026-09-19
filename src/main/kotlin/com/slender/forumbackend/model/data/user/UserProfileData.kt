@@ -24,7 +24,7 @@ data class UserProfileTagData(
 
 @Schema(description = "用户主页统计")
 data class UserProfileStatsData(
-    val moePoint: Int = 0,
+    val moePoint: Long = 0,
     val articleCount: Int = 0,
     val likedCount: Int = 0,
     val promotedCount: Int = 0,

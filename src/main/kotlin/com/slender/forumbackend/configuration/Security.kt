@@ -9,6 +9,7 @@ import com.slender.forumbackend.constant.core.Http.AUTH_PATHS
 import com.slender.forumbackend.constant.core.Http.COMMENT_REPLY
 import com.slender.forumbackend.constant.core.Http.COMMENT_WILDCARD
 import com.slender.forumbackend.constant.core.Http.HOME_CAROUSEL
+import com.slender.forumbackend.constant.core.Http.ANNOUNCEMENTS
 import com.slender.forumbackend.constant.core.Http.LOGOUT
 import com.slender.forumbackend.constant.core.Http.Method.ALL_METHODS
 import com.slender.forumbackend.constant.core.Http.Method.DELETE
@@ -66,6 +67,7 @@ class Security {
                 TAG_LIST,
                 TAG_WILDCARD,
                 HOME_CAROUSEL,
+                ANNOUNCEMENTS,
             ),
         )
         methodPolicy(PUT, ARTICLE_DETAIL, Required)
@@ -112,7 +114,9 @@ class Security {
             }
         }
 
-    @Bean fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
+    @Bean
+    fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 
-    @Bean fun pathMatcher(): PathMatcher = AntPathMatcher()
+    @Bean
+    fun pathMatcher(): PathMatcher = AntPathMatcher()
 }

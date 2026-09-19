@@ -1,6 +1,9 @@
 package com.slender.forumbackend.service.admin
 
+import com.slender.forumbackend.component.article.ArticleTagWriter
 import com.slender.forumbackend.component.common.AuditLogger
+import com.slender.forumbackend.constant.enumeration.article.ArticleStatus
+import com.slender.forumbackend.constant.enumeration.article.ArticleVisibility
 import com.slender.forumbackend.constant.enumeration.comment.CommentStatus
 import com.slender.forumbackend.constant.enumeration.notice.CommentNoticeType
 import com.slender.forumbackend.exception.AdminResourceNotFoundException
@@ -8,6 +11,7 @@ import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.model.data.AdminPageData
 import com.slender.forumbackend.model.data.governance.ContentReviewData
 import com.slender.forumbackend.model.entity.governance.ContentReviewRecord
+import com.slender.forumbackend.model.request.ArticlePublishTagRequest
 import com.slender.forumbackend.model.request.ContentReviewDecisionRequest
 import com.slender.forumbackend.repository.article.ArticleContentRepository
 import com.slender.forumbackend.repository.article.ArticleQueryRepository
@@ -33,6 +37,7 @@ class AdminContentReviewService(
     private val users: UserWriteRepository,
     private val audit: AuditLogger,
     private val mapper: ObjectMapper,
+    private val tagWriter: ArticleTagWriter,
 ) {
     fun list(status: String? = null, page: Int = 1, size: Int = 20): AdminPageData<ContentReviewData> {
         val safeSize = size.coerceIn(1, 100)
@@ -80,10 +85,31 @@ class AdminContentReviewService(
             "ARTICLE" -> {
                 val articleId = id ?: payload.long("articleId")
                     ?: throw InvalidRequestException("文章 ID 缺失")
-                if (!articles.approve(articleId, payload.string("title"), payload.string("summary"), payload.string("cover"), now)) {
+                val previous = articles.findByIdForUpdate(articleId)
+                    ?: throw AdminResourceNotFoundException("待审核文章不存在或已删除")
+                val summary = payload.string("summary").let {
+                    if (payload["operation"] == null &&
+                        previous.status == ArticleStatus.Draft &&
+                        it != null && it.isBlank()
+                    ) previous.summary else it
+                }
+                if (!articles.approve(articleId, payload.string("title"), summary, payload.string("cover"), now)) {
                     throw AdminResourceNotFoundException("待审核文章不存在或已删除")
                 }
                 payload.string("content")?.let { articleContents.updateContent(articleId, it) }
+                (payload["tags"] as? List<*>)?.let { values ->
+                    val tags = values.map { value ->
+                        val tag = value as? Map<*, *> ?: throw InvalidRequestException("标签格式错误")
+                        ArticlePublishTagRequest(
+                            name = tag["name"] as? String ?: throw InvalidRequestException("标签名称缺失"),
+                            color = (tag["color"] as? Number)?.toInt() ?: throw InvalidRequestException("标签颜色缺失"),
+                        )
+                    }
+                    tagWriter.replace(articleId, tags, now)
+                }
+                if (previous.status != ArticleStatus.Published &&
+                    previous.visibility == ArticleVisibility.Public
+                ) users.addPublishedArticleCount(previous.authorId, 1)
             }
             "COMMENT" -> applyComment(id, payload, now)
             "USER_SIGNATURE" -> {

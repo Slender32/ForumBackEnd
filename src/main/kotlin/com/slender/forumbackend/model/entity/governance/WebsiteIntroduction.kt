@@ -14,6 +14,6 @@ data class WebsiteIntroduction(
     val sortOrder: Int,
     val enabled: Boolean,
     val deletedAt: LocalDateTime? = null,
-    val createTime: LocalDateTime = LocalDateTime.MIN,
-    val updateTime: LocalDateTime = LocalDateTime.MIN,
+    val createTime: LocalDateTime,
+    val updateTime: LocalDateTime,
 )

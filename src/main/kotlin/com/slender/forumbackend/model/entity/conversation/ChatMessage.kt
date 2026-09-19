@@ -15,6 +15,7 @@ data class ChatMessage(
     val status: MessageStatus = MessageStatus.Sent,
     val clientMessageId: String? = null,
     val createTime: LocalDateTime,
+    val messageType: MessageType = MessageType.TEXT,
 )
 
 enum class MessageStatus(
@@ -23,4 +24,8 @@ enum class MessageStatus(
 ) {
     Sent("SENT"),
     Deleted("DELETED"),
+}
+
+enum class MessageType(@EnumValue val value: String) {
+    TEXT("TEXT"), IMAGE("IMAGE"),
 }

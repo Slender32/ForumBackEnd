@@ -38,7 +38,7 @@ class ConversationController(
     private val conversationFacade: ConversationFacade,
 ) {
     @GetMapping("/list")
-    @Operation(summary = "会话列表", description = "只返回当前用户参与且已有消息的会话。需要登录。")
+    @Operation(summary = "会话列表", description = "返回当前用户参与的会话，包含尚未发送消息的空会话。需要登录。")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "成功"),
@@ -59,12 +59,13 @@ class ConversationController(
     }
 
     @PostMapping
-    @Operation(summary = "创建或获取会话", description = "与对方已有会话则返回已有会话。需要登录。")
+    @Operation(summary = "创建或获取会话", description = "需要登录并关注对方。创建空会话或返回已有会话。")
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "成功"),
             ApiResponse(responseCode = "400", description = "1008 不能和自己创建会话"),
             ApiResponse(responseCode = "401", description = "1011 未登录"),
+            ApiResponse(responseCode = "403", description = "1504 请先关注对方"),
             ApiResponse(responseCode = "404", description = "1101 对方不存在"),
         ]
     )

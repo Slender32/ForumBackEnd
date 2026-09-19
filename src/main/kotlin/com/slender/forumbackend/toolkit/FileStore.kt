@@ -18,9 +18,13 @@ import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.exception.NullFileNameException
 import com.slender.forumbackend.model.data.file.ImageUploadData
 import com.slender.forumbackend.model.data.file.ImageUploadItemData
+import com.slender.forumbackend.mapper.ImageAssetMapper
+import com.slender.forumbackend.model.entity.ImageAsset
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDateTime
+import javax.imageio.ImageIO
 import java.time.LocalDate.now
 import java.time.format.DateTimeFormatter.ofPattern
 import java.util.Locale
@@ -28,7 +32,8 @@ import java.util.UUID.randomUUID
 
 @Component
 class FileStore(
-    private val client: OSSClient
+    private val client: OSSClient,
+    private val imageAssetMapper: ImageAssetMapper? = null,
 ) {
 
     private val logger = LoggerFactory.getLogger(FileStore::class.java)
@@ -86,9 +91,25 @@ class FileStore(
     private fun uploadImage(file: MultipartFile): ImageUploadItemData =
         runCatching {
             file.validateImage()
+            val image = ImageIO.read(file.inputStream) ?: throw InvalidRequestException(IMAGE_TYPE_UNSUPPORTED_ERROR)
+            val originalName = file.originalFilename!!.substringBeforeLast('.')
+            val type = file.originalFilename.suffix().removePrefix(".").lowercase(Locale.ROOT)
+            val url = upload(file.originalFilename, file.bytes)
+            imageAssetMapper?.insert(
+                ImageAsset(
+                    url = url,
+                    objectKey = url.substringAfter("$ENDPOINT/"),
+                    originalName = originalName,
+                    width = image.width,
+                    height = image.height,
+                    byteSize = file.size,
+                    type = type,
+                    createTime = LocalDateTime.now(),
+                )
+            )
             ImageUploadItemData(
                 success = true,
-                url = upload(file.originalFilename, file.bytes),
+                url = url,
             )
         }.getOrElse {
             ImageUploadItemData(

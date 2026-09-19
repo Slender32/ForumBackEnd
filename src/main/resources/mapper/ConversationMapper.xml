@@ -3,16 +3,30 @@
 <mapper namespace="com.slender.forumbackend.mapper.ConversationMapper">
     <select id="selectPageByUser" resultType="com.slender.forumbackend.model.entity.conversation.Conversation">
         SELECT conversation_id, user_id_1, user_id_2,
-               last_message_id, last_message_time, create_time, update_time
+               last_message_id,
+               COALESCE(last_message_time, create_time) AS last_message_time,
+               create_time, update_time
         FROM conversations
         WHERE (user_id_1 = #{userId} OR user_id_2 = #{userId})
-          AND last_message_id IS NOT NULL
         <if test="cursorConversationId != -1 and cursorLastMessageTime != null">
-            AND (last_message_time &lt; #{cursorLastMessageTime}
-                 OR (last_message_time = #{cursorLastMessageTime}
-                     AND conversation_id &lt; #{cursorConversationId}))
+            AND (
+                COALESCE(last_message_time, create_time) &lt; #{cursorLastMessageTime}
+                OR (
+                    COALESCE(last_message_time, create_time) = #{cursorLastMessageTime}
+                    AND conversation_id &lt; #{cursorConversationId}
+                )
+            )
         </if>
-        ORDER BY last_message_time DESC, conversation_id DESC
+        ORDER BY COALESCE(last_message_time, create_time) DESC, conversation_id DESC
         LIMIT #{limit}
+    </select>
+    <select id="selectAllByUser" resultType="com.slender.forumbackend.model.entity.conversation.Conversation">
+        SELECT conversation_id, user_id_1, user_id_2,
+               last_message_id,
+               COALESCE(last_message_time, create_time) AS last_message_time,
+               create_time, update_time
+        FROM conversations
+        WHERE (user_id_1 = #{userId} OR user_id_2 = #{userId})
+        ORDER BY COALESCE(last_message_time, create_time) DESC, conversation_id DESC
     </select>
 </mapper>

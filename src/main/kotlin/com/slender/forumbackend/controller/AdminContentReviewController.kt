@@ -9,6 +9,8 @@ import com.slender.forumbackend.facade.AdminContentReviewFacade
 import com.slender.forumbackend.model.data.AdminPageData
 import com.slender.forumbackend.model.data.governance.ContentReviewData
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -47,10 +49,23 @@ class AdminContentReviewController(
 
     @PutMapping("/{id}")
     @Operation(summary = "批准或拒绝审核任务")
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "成功"),
+            ApiResponse(responseCode = "400", description = "1206 文章标签不合法"),
+        ]
+    )
     fun decide(
-        @PathVariable id: Long,
-        @Validated @RequestBody request: ContentReviewDecisionRequest,
-        @AuthenticationPrincipal user: UserCache,
-    ): Response<Int> = success(facade.decide(id, user.uid, request))
+        @PathVariable
+        id: Long,
+
+        @Validated
+        @RequestBody
+        request: ContentReviewDecisionRequest,
+
+        @AuthenticationPrincipal
+        user: UserCache,
+    ): Response<Int> =
+        success(facade.decide(id, user.uid, request))
 
 }

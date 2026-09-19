@@ -10,6 +10,7 @@ import com.slender.forumbackend.model.data.Response.Companion.success
 import com.slender.forumbackend.model.data.UserData
 import com.slender.forumbackend.model.request.CaptchaRequest
 import com.slender.forumbackend.model.request.RegisterRequest
+import com.slender.forumbackend.model.request.ForgotPasswordRequest
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -33,11 +34,10 @@ class AuthController(
     @PostMapping("/captcha")
     @Operation(summary = "发送注册验证码", description = "生成6位数字验证码，首位不会为0，并异步发送到目标邮箱。")
     @ApiResponses(
-        value =
-            [
-                ApiResponse(responseCode = "200", description = "发送成功"),
-                ApiResponse(responseCode = "400", description = "1008 请求参数错误"),
-            ]
+        value = [
+            ApiResponse(responseCode = "200", description = "发送成功"),
+            ApiResponse(responseCode = "400", description = "1008 请求参数错误"),
+        ]
     )
     fun captcha(
         @RequestBody
@@ -46,6 +46,16 @@ class AuthController(
     ): Response<Unit> {
         authFacade.sendCaptcha(captchaRequest)
         return success(CAPTCHA_SENT)
+    }
+
+    @PostMapping("/forgot-password")
+    fun forgotPassword(
+        @RequestBody
+        @Validated
+        request: ForgotPasswordRequest
+    ): Response<Unit> {
+        authFacade.resetPassword(request)
+        return success("密码修改成功")
     }
 
     @PostMapping("/register")
@@ -74,14 +84,13 @@ class AuthController(
         security = [SecurityRequirement(name = "bearerAuth")],
     )
     @ApiResponses(
-        value =
-            [
-                ApiResponse(responseCode = "200", description = "刷新成功"),
-                ApiResponse(responseCode = "400", description = "1006 令牌签名或格式错误"),
-                ApiResponse(responseCode = "401", description = "1001 令牌缺失；1003 refreshToken已过期"),
-                ApiResponse(responseCode = "403", description = "1005 用户被封禁"),
-                ApiResponse(responseCode = "404", description = "1101 用户不存在"),
-            ]
+        value = [
+            ApiResponse(responseCode = "200", description = "刷新成功"),
+            ApiResponse(responseCode = "400", description = "1006 令牌签名或格式错误"),
+            ApiResponse(responseCode = "401", description = "1001 令牌缺失；1003 refreshToken已过期"),
+            ApiResponse(responseCode = "403", description = "1005 用户被封禁"),
+            ApiResponse(responseCode = "404", description = "1101 用户不存在"),
+        ]
     )
     fun refresh(
         @Parameter(hidden = true)
@@ -99,14 +108,13 @@ class AuthController(
         security = [SecurityRequirement(name = "bearerAuth")],
     )
     @ApiResponses(
-        value =
-            [
-                ApiResponse(responseCode = "200", description = "获取成功"),
-                ApiResponse(responseCode = "400", description = "1006 令牌签名或格式错误"),
-                ApiResponse(responseCode = "401", description = "1001 令牌缺失；1002 accessToken已过期"),
-                ApiResponse(responseCode = "403", description = "1005 用户被封禁"),
-                ApiResponse(responseCode = "404", description = "1101 用户不存在"),
-            ]
+        value = [
+            ApiResponse(responseCode = "200", description = "获取成功"),
+            ApiResponse(responseCode = "400", description = "1006 令牌签名或格式错误"),
+            ApiResponse(responseCode = "401", description = "1001 令牌缺失；1002 accessToken已过期"),
+            ApiResponse(responseCode = "403", description = "1005 用户被封禁"),
+            ApiResponse(responseCode = "404", description = "1101 用户不存在"),
+        ]
     )
     fun me(
         @Parameter(hidden = true)
@@ -117,3 +125,4 @@ class AuthController(
         return success(data)
     }
 }
+

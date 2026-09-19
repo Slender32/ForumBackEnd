@@ -9,6 +9,8 @@ object Message {
     }
 
     object Exception {
+        const val ALREADY_CHECKED_IN_ERROR = "今日已签到"
+        const val ANNOUNCEMENT_NOT_FOUND_ERROR = "公告不存在"
         const val ACCESS_TOKEN_EXPIRE_ERROR = "访问令牌已过期"
         const val AUTHORITY_ERROR = "权限不足"
         const val BLOCK_ERROR = "用户已被封禁"
@@ -50,6 +52,7 @@ object Message {
         const val CONVERSATION_NOT_FOUND_ERROR = "会话不存在"
         const val MESSAGE_SEND_FAILED_ERROR = "消息发送失败"
         const val MESSAGE_TARGET_INVALID_ERROR = "对方不存在或拒收"
+        const val CONVERSATION_FOLLOW_REQUIRED_ERROR = "请先关注该用户后再私聊"
         const val ADMIN_RESOURCE_NOT_FOUND_ERROR = "后台资源不存在"
     }
 }

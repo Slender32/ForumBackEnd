@@ -10,6 +10,10 @@ data class ArticleDetailData(
     @field:Schema(description = "文章标题")
     val title: String,
 
+    val summary: String = "",
+
+    val cover: String = "",
+
     @field:Schema(description = "Markdown内容")
     val content: String,
 
@@ -32,7 +36,7 @@ data class ArticleDetailData(
     val likeCount: Int,
 
     @field:Schema(description = "打赏(萌萌点)总数")
-    val rewardCount: Int = 0,
+    val rewardCount: Long = 0,
 
     @field:Schema(description = "评论数")
     val commentCount: Int,

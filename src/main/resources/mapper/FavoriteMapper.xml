@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.FavoriteMapper">
+    <select id="selectPageByUser" resultType="com.slender.forumbackend.model.entity.favorite.Favorite">
+        SELECT f.favorite_id, f.user_id, f.article_id, f.create_time, f.deleted_at
+        FROM favorites f
+        WHERE f.user_id = #{userId}
+          AND f.deleted_at IS NULL
+          AND EXISTS (
+              SELECT 1
+              FROM articles a
+              WHERE a.article_id = f.article_id
+                AND a.status = 'PUBLISHED'
+                AND a.visibility = 'PUBLIC'
+                AND a.deleted_at IS NULL
+          )
+        <if test="cursorCreateTime != null">
+            AND (
+                f.create_time &lt; #{cursorCreateTime}
+                OR (f.create_time = #{cursorCreateTime} AND f.favorite_id &lt; #{cursorFavoriteId})
+            )
+        </if>
+        ORDER BY f.create_time DESC, f.favorite_id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

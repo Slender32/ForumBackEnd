@@ -12,7 +12,7 @@ data class UserStatistics(
     val followCount: Int = 0,
     val publishedArticleCount: Int = 0,
     val likedCount: Int = 0,
-    val moePoint: Int = 0,
+    val moePoint: Long = 0,
     val promotedCount: Int = 0,
 ) {
     constructor(uid: Long) : this(userId = uid)

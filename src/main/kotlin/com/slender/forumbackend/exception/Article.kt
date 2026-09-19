@@ -10,4 +10,4 @@ class MoePointNotEnoughException: ArticleException()
 
 class ArticleSelfRewardException: ArticleException()
 
-class ArticleTagInvalidException: ArticleException()
+class ArticleTagInvalidException(message: String? = null) : ArticleException(message)

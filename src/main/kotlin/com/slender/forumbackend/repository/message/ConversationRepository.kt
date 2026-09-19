@@ -48,6 +48,8 @@ class ConversationRepository(
         limit = limit,
     )
 
+    fun findAllByUser(userId: Long): List<Conversation> = conversationMapper.selectAllByUser(userId)
+
     fun updateLastMessage(conversationId: Long, messageId: Long, sendTime: LocalDateTime) {
         val current = conversationMapper.selectById(conversationId) ?: return
         conversationMapper.updateById(

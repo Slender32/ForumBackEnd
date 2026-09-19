@@ -16,12 +16,15 @@ object Http {
     const val CAPTCHA = "/auth/captcha"
     const val LOGIN = "/auth/login"
     const val REGISTER = "/auth/register"
+    const val FORGOT_PASSWORD = "/auth/forgot-password"
     const val REFRESH = "/auth/refresh"
     const val APP_VERSION_CHECK = "/app/version/check"
     const val WEBSITE_INTRODUCTION = "/website/introduction"
     const val WEBSITE_RELEASES = "/website/releases"
 
     const val USER_ME = "/user/me"
+    const val USER_ME_POINTS = "/user/me/points"
+    const val USER_ME_CHECK_IN = "/user/me/check-in"
     const val USER_ME_AVATAR = "/user/me/avatar"
     const val USER_ME_SIGNATURE = "/user/me/signature"
     const val USER_ME_EMAIL = "/user/me/email"
@@ -65,8 +68,11 @@ object Http {
     const val TAG_WILDCARD = "/tag/*"
 
     const val HOME_CAROUSEL = "/home/carousel"
+    const val ANNOUNCEMENTS = "/announcements"
+    const val ANNOUNCEMENT_READ = "/announcements/*/read"
 
     const val FILES_IMAGE_UPLOAD = "/files/image/upload"
+    const val FILES_IMAGE_METADATA = "/files/image/metadata"
 
     const val OPENAPI_API_DOCS_YAML = "/openapi/api-docs.yaml"
     const val OPENAPI_API_DOCS_ALL = "/openapi/api-docs/**"
@@ -78,6 +84,7 @@ object Http {
         CAPTCHA,
         LOGIN,
         REGISTER,
+        FORGOT_PASSWORD,
         REFRESH,
         APP_VERSION_CHECK,
         WEBSITE_INTRODUCTION,
@@ -99,7 +106,9 @@ object Http {
         TAG_LIST,
         TAG_WILDCARD,
         HOME_CAROUSEL,
+        ANNOUNCEMENTS,
         MESSAGE_WEBSOCKET,
+        FILES_IMAGE_METADATA,
     )
 
     val AUTH_PATHS = arrayOf(
@@ -126,9 +135,13 @@ object Http {
         USERS_FOLLOW,
         ARTICLE_FAVORITE,
         USER_ME,
+        USER_ME_POINTS,
+        USER_ME_CHECK_IN,
         USER_ME_AVATAR,
         USER_ME_SIGNATURE,
         USER_ME_EMAIL,
         USER_ME_PASSWORD,
+        ANNOUNCEMENT_READ,
     )
 }
+

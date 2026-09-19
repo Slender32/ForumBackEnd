@@ -38,51 +38,100 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import com.slender.forumbackend.model.data.user.UserPointsData
+import com.slender.forumbackend.model.data.user.CheckInData
+import com.slender.forumbackend.model.request.UserPointsRequest
 
 @RestController
 @Tag(name = "User", description = "用户相关API")
 class UserController(
     private val userFacade: UserFacade,
 ) {
+    @Operation(summary = "积分余额、流水及签到状态", description = "page >= 0，size 1..100；时间为 Unix 毫秒，业务时区 Asia/Shanghai。")
+    @GetMapping("/user/me/points")
+    @SecurityRequirement(name = "bearerAuth")
+    fun points(
+        @ModelAttribute
+        @Validated
+        @ParameterObject
+        request: UserPointsRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<UserPointsData> =
+        success(userFacade.points(userCache.uid, request.page, request.size))
+
+    @Operation(summary = "每日签到", description = "上海时间每日一次，奖励 5..20；重复返回 HTTP 409 / 1104 ALREADY_CHECKED_IN。")
+    @PostMapping("/user/me/check-in")
+    @ApiResponse(responseCode = "409", description = "1104 ALREADY_CHECKED_IN")
+    @SecurityRequirement(name = "bearerAuth")
+    fun checkIn(
+        @AuthenticationPrincipal
+        userCache: UserCache
+    ): Response<CheckInData> =
+        success(userFacade.checkIn(userCache.uid))
+
     @PutMapping("/user/me/avatar")
     @Operation(summary = "修改头像", description = "头像地址必须来自当前站点的图片上传接口。")
     @SecurityRequirement(name = "bearerAuth")
     fun updateAvatar(
-        @RequestBody @Validated request: UpdateAvatarRequest,
-        @AuthenticationPrincipal userCache: UserCache,
-    ): Response<UserData> = success(userFacade.updateAvatar(userCache.uid, request))
+        @RequestBody
+        @Validated request: UpdateAvatarRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<UserData> =
+        success(userFacade.updateAvatar(userCache.uid, request))
 
     @PutMapping("/user/me/signature")
     @Operation(summary = "修改签名", description = "允许传空字符串清空签名。")
     @SecurityRequirement(name = "bearerAuth")
     fun updateSignature(
-        @RequestBody @Validated request: UpdateSignatureRequest,
-        @AuthenticationPrincipal userCache: UserCache,
-    ): Response<UserData> = success(userFacade.updateSignature(userCache.uid, request))
+        @RequestBody
+        @Validated
+        request: UpdateSignatureRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<UserData> =
+        success(userFacade.updateSignature(userCache.uid, request))
 
     @PutMapping("/user/me/email")
     @Operation(summary = "完成邮箱改绑", description = "验证码先通过 POST /auth/captcha 获取，再在此接口提交。")
     @SecurityRequirement(name = "bearerAuth")
     fun rebindEmail(
-        @RequestBody @Validated request: RebindEmailRequest,
-        @AuthenticationPrincipal userCache: UserCache,
+        @RequestBody
+        @Validated request: RebindEmailRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
     ): Response<SessionData> = success(userFacade.rebindEmail(userCache.uid, request))
 
     @PutMapping("/user/me/password")
     @Operation(summary = "修改密码", description = "修改成功后当前账号已有登录缓存失效。")
     @SecurityRequirement(name = "bearerAuth")
     fun updatePassword(
-        @RequestBody @Validated request: UpdatePasswordRequest,
-        @AuthenticationPrincipal userCache: UserCache,
-    ): Response<UpdatePasswordData> = success(userFacade.updatePassword(userCache.uid, request))
+        @RequestBody
+        @Validated
+        request: UpdatePasswordRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<UpdatePasswordData> =
+        success(userFacade.updatePassword(userCache.uid, request))
 
     @DeleteMapping("/user/me")
     @Operation(summary = "注销账号", description = "需要当前密码和通过 auth/captcha 获取的当前邮箱验证码。")
     @SecurityRequirement(name = "bearerAuth")
     fun cancelAccount(
-        @RequestBody @Validated request: CancelAccountRequest,
-        @AuthenticationPrincipal userCache: UserCache,
-    ): Response<CancelAccountData> = success(userFacade.cancelAccount(userCache.uid, request))
+        @RequestBody
+        @Validated
+        request: CancelAccountRequest,
+
+        @AuthenticationPrincipal
+        userCache: UserCache,
+    ): Response<CancelAccountData> =
+        success(userFacade.cancelAccount(userCache.uid, request))
 
     @GetMapping("/users/{uid}/profile")
     @Operation(summary = "用户主页资料", description = "支持匿名访问。登录后补充 isFollowing / isSelf。")
@@ -156,7 +205,7 @@ class UserController(
     @ApiResponses(
         value = [
             ApiResponse(responseCode = "200", description = "成功"),
-            ApiResponse(responseCode = "401", description = "1011 未登录"),
+            ApiResponse(responseCode = "401", description = "1001 缺少令牌 / 1011 未认证"),
             ApiResponse(responseCode = "403", description = "1009 查看他人收藏"),
             ApiResponse(responseCode = "404", description = "1101 用户不存在"),
         ]
@@ -184,7 +233,7 @@ class UserController(
         value = [
             ApiResponse(responseCode = "200", description = "成功"),
             ApiResponse(responseCode = "400", description = "1008 不能关注自己"),
-            ApiResponse(responseCode = "401", description = "1011 未登录"),
+            ApiResponse(responseCode = "401", description = "1001 缺少令牌 / 1011 未认证"),
             ApiResponse(responseCode = "404", description = "1101 用户不存在"),
         ]
     )
@@ -206,7 +255,7 @@ class UserController(
         value = [
             ApiResponse(responseCode = "200", description = "成功"),
             ApiResponse(responseCode = "400", description = "1008/1602 参数或理由不合法"),
-            ApiResponse(responseCode = "401", description = "1011 未登录"),
+            ApiResponse(responseCode = "401", description = "1001 缺少令牌 / 1011 未认证"),
             ApiResponse(responseCode = "404", description = "1101 用户不存在"),
             ApiResponse(responseCode = "409", description = "1601 重复举报"),
         ]

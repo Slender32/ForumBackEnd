@@ -7,6 +7,7 @@ import com.slender.forumbackend.model.data.Response
 import com.slender.forumbackend.model.data.Response.Companion.success
 import com.slender.forumbackend.model.data.file.FileSizeData
 import com.slender.forumbackend.model.data.file.ImageUploadData
+import com.slender.forumbackend.model.data.file.ImageMetadataData
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -76,6 +77,14 @@ class FileController(
     ): Response<ImageUploadData> {
         return success(fileFacade.uploadImages(files.orEmpty()))
     }
+
+    @GetMapping("/image/metadata")
+    @Operation(summary = "获取图片元数据", description = "根据图片 URL 查询图片元数据，未找到时返回 null")
+    fun imageMetadata(
+        @Parameter(description = "图片访问 URL")
+        @RequestParam url: String
+    ): Response<ImageMetadataData?> = success(fileFacade.imageMetadata(url))
+
     @GetMapping("/{name}/size")
     @Operation(
         summary = "获取文件大小",

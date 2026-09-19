@@ -34,7 +34,6 @@ class ArticleStatisticRepository(
     }
 
     fun incrementRewardCount(articleId: Long, amount: Int) {
-        val current = articleStatisticMapper.selectById(articleId) ?: return
-        articleStatisticMapper.updateById(current.copy(rewardCount = current.rewardCount + amount))
+        check(articleStatisticMapper.incrementRewardCount(articleId, amount) == 1) { "Missing article statistics: $articleId" }
     }
 }

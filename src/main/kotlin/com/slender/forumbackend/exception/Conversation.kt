@@ -9,3 +9,5 @@ class MessageSendFailedException : ConversationException()
 class MessageTargetInvalidException : ConversationException()
 
 class ConversationForbiddenException : ConversationException()
+
+class ConversationFollowRequiredException : ConversationException()

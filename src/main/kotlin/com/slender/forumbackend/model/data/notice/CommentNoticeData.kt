@@ -12,6 +12,9 @@ data class CommentNoticeData(
     val content: String,
     val createTime: Long,
     val isRead: Boolean = false,
+    val articleTitle: String = "",
+    val isReply: Boolean = false,
+    val replyToUserName: String? = null,
 )
 
 @Schema(description = "评论通知列表")

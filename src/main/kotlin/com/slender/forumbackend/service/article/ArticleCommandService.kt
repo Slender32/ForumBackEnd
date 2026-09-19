@@ -1,5 +1,6 @@
 package com.slender.forumbackend.service.article
 
+import com.slender.forumbackend.component.article.ArticleTagWriter
 import com.slender.forumbackend.constant.enumeration.article.ArticleStatus.Deleted
 import com.slender.forumbackend.exception.InvalidRequestException
 import com.slender.forumbackend.model.request.ArticleUpdateRequest
@@ -16,6 +17,7 @@ import com.slender.forumbackend.repository.comment.CommentNoticeRepository
 import com.slender.forumbackend.component.common.ContentModerationPolicy
 import com.slender.forumbackend.component.common.ContentReviewWriter
 import com.slender.forumbackend.component.common.ModerationStatus
+import com.slender.forumbackend.repository.user.UserWriteRepository
 import java.time.LocalDateTime
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
@@ -34,10 +36,12 @@ class ArticleCommandService(
     private val commentNotices: CommentNoticeRepository,
     private val moderation: ContentModerationPolicy,
     private val reviews: ContentReviewWriter,
+    private val tagWriter: ArticleTagWriter,
+    private val users: UserWriteRepository,
 ) {
     fun update(id: Long, userId: Long, authorities: Set<String>, request: ArticleUpdateRequest) {
         val current =
-            articles.findById(id)?.takeIf {
+            articles.findByIdForUpdate(id)?.takeIf {
                 it.deletedAt == null && it.status != Deleted
             } ?: throw IllegalArgumentException("文章不存在")
         if (current.authorId != userId && "article:manage" !in authorities)
@@ -60,7 +64,10 @@ class ArticleCommandService(
                     "summary" to summary.text,
                     "content" to content.text,
                     "cover" to request.cover.trim(),
+                    "tags" to request.tags,
+                    "operation" to "UPDATE",
                 ),
+                content = content.text,
             )
             return
         }
@@ -74,10 +81,11 @@ class ArticleCommandService(
             )
         )
         contents.updateContent(id, content.text)
+        request.tags?.let { tagWriter.replace(id, it, now) }
     }
 
     fun delete(id: Long, userId: Long, authorities: Set<String>) {
-        val current = articles.findById(id) ?: return
+        val current = articles.findByIdForUpdate(id) ?: return
         if (current.deletedAt != null || current.status == Deleted) return
         if (current.authorId != userId && "article:manage" !in authorities)
             throw AccessDeniedException("NO_PERMISSION")
@@ -98,5 +106,8 @@ class ArticleCommandService(
         comments.markDeletedByArticle(id, now)
         commentInteractions.markDeletedByArticle(id, now)
         commentNotices.markDeletedByArticle(id, now)
+        if (current.status == com.slender.forumbackend.constant.enumeration.article.ArticleStatus.Published &&
+            current.visibility == com.slender.forumbackend.constant.enumeration.article.ArticleVisibility.Public
+        ) users.addPublishedArticleCount(current.authorId, -1)
     }
 }

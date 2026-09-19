@@ -29,6 +29,12 @@ class UserWriteRepository(
         userStatisticsMapper.insert(UserStatistics(uid))
     }
 
+    fun addPublishedArticleCount(userId: Long, delta: Int) {
+        check(userStatisticsMapper.addPublishedArticleCount(userId, delta) == 1) {
+            "Missing user statistics: $userId"
+        }
+    }
+
     fun insertFollow(follow: UserFollow) {
         val restored =
             userFollowMapper.update(
@@ -44,8 +50,8 @@ class UserWriteRepository(
         userFollowMapper.insert(follow)
     }
 
-    fun addMoePoint(userId: Long, amount: Int) {
-        userStatisticsMapper.addMoePoint(userId, amount)
+    fun addMoePoint(userId: Long, amount: Long) {
+        check(userStatisticsMapper.addMoePoint(userId, amount) == 1) { "Missing user statistics: $userId" }
     }
 
     fun addFollowCount(userId: Long, delta: Int) {
@@ -63,9 +69,6 @@ class UserWriteRepository(
         if (current.status != com.slender.forumbackend.constant.enumeration.user.UserStatus.ACTIVE) return false
         return userMapper.updateById(current.copy(signature = signature, updateTime = updateTime)) > 0
     }
-
-    fun deductMoePoint(userId: Long, amount: Int) =
-        userStatisticsMapper.deductMoePoint(userId, amount) > 0
 
     fun deleteFollow(followerId: Long, followeeId: Long) =
         userFollowMapper.update(

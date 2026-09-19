@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.UserPointsMapper">
+    <select id="balance" resultType="long">
+        SELECT moe_point FROM user_stats WHERE user_id = #{userId}
+    </select>
+
+    <select id="lockBalance" resultType="long">
+        SELECT moe_point FROM user_stats WHERE user_id = #{userId} FOR UPDATE
+    </select>
+
+    <select id="records" resultType="com.slender.forumbackend.model.entity.user.content.PointRecord">
+        SELECT record_id, amount, balance, reason, create_time
+        FROM user_point_records
+        WHERE user_id = #{userId}
+        ORDER BY record_id DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="checkIn" resultType="com.slender.forumbackend.model.entity.user.content.CheckInRecord">
+        SELECT check_in_date, points, consecutive_days
+        FROM user_check_ins
+        WHERE user_id = #{userId} AND check_in_date = #{date}
+    </select>
+
+    <insert id="insertCheckIn">
+        INSERT INTO user_check_ins(user_id, check_in_date, points, consecutive_days, create_time)
+        VALUES(#{userId}, #{date}, #{points}, #{streak}, #{now})
+        ON CONFLICT (user_id, check_in_date) DO NOTHING
+    </insert>
+
+    <insert id="insert">
+        INSERT INTO user_point_records(user_id, amount, balance, reason, create_time, idempotency_key)
+        VALUES(#{userId}, #{amount}, #{balance}, #{reason}, #{now}, #{key})
+    </insert>
+
+    <update id="add">
+        UPDATE user_stats
+        SET moe_point = moe_point + #{amount}
+        WHERE user_id = #{userId} AND moe_point + #{amount} &gt;= 0
+    </update>
+</mapper>

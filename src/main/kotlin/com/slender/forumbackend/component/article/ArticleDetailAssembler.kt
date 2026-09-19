@@ -57,6 +57,8 @@ class ArticleDetailAssembler(
         return ArticleDetailData(
             articleId = article.articleId,
             title = article.title,
+            summary = article.summary,
+            cover = article.cover,
             content = content.content,
             author = author.toArticleUserData(),
             tags = tags,

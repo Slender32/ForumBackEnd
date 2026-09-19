@@ -12,6 +12,8 @@ import com.slender.forumbackend.model.request.CommentNoticeReadRequest
 import com.slender.forumbackend.repository.comment.CommentNoticeRepository
 import com.slender.forumbackend.repository.comment.CommentQueryRepository
 import com.slender.forumbackend.repository.user.UserReadRepository
+import com.slender.forumbackend.repository.article.ArticleQueryRepository
+import com.slender.forumbackend.constant.enumeration.notice.CommentNoticeType.REPLY
 import org.springframework.stereotype.Service
 
 @Service
@@ -19,6 +21,7 @@ class NoticeService(
     private val commentNoticeRepository: CommentNoticeRepository,
     private val commentQueryRepository: CommentQueryRepository,
     private val userReadRepository: UserReadRepository,
+    private val articleQueryRepository: ArticleQueryRepository,
 ) {
 
     fun listCommentNotices(userId: Long, request: CommentNoticeListRequest): CommentNoticeListData {
@@ -35,7 +38,11 @@ class NoticeService(
         val visible = page.filter { notice ->
             comments[notice.commentId]?.status == Normal
         }
-        val senders = userReadRepository.findByIds(visible.map { it.senderId }).associateBy { it.uid }
+        val userIds = visible.map { it.senderId } + visible.mapNotNull {
+            comments[it.commentId]?.replyToUserId?.takeIf { id -> id > 0 }
+        }
+        val senders = userReadRepository.findByIds(userIds.distinct()).associateBy { it.uid }
+        val articles = articleQueryRepository.findByIds(visible.map { it.articleId }).associateBy { it.articleId }
         return CommentNoticeListData(
             items = visible.map { notice ->
                 val comment = comments[notice.commentId]
@@ -48,6 +55,9 @@ class NoticeService(
                     content = comment?.content.orEmpty(),
                     createTime = notice.createTime.timestamp,
                     isRead = notice.isRead,
+                    articleTitle = articles[notice.articleId]?.title.orEmpty(),
+                    isReply = notice.type == REPLY,
+                    replyToUserName = if (notice.type == REPLY) senders[comment?.replyToUserId]?.name else null,
                 )
             },
             nextCursor = if (hasMore) page.lastOrNull()?.let {

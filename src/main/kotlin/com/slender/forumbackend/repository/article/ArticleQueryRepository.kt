@@ -19,9 +19,13 @@ class ArticleQueryRepository(
 
     fun findById(articleId: Long): Article? = articleMapper.selectById(articleId)
 
+    fun findByIdForUpdate(articleId: Long): Article? = articleMapper.selectOne(
+        QueryWrapper<Article>().eq("article_id", articleId).last("FOR UPDATE")
+    )
+
     fun approve(articleId: Long, title: String?, summary: String?, cover: String?, now: LocalDateTime): Boolean {
-        val current = findById(articleId) ?: return false
-        if (current.deletedAt != null) return false
+        val current = findByIdForUpdate(articleId) ?: return false
+        if (current.deletedAt != null || current.status == Deleted) return false
         return articleMapper.updateById(
             current.copy(
                 title = title ?: current.title,
@@ -35,7 +39,7 @@ class ArticleQueryRepository(
     }
 
     fun rejectDraft(articleId: Long, now: LocalDateTime): Boolean {
-        val current = findById(articleId) ?: return false
+        val current = findByIdForUpdate(articleId) ?: return false
         if (current.deletedAt != null || current.status != Draft) return false
         return articleMapper.updateById(
             current.copy(

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.slender.forumbackend.mapper.AnnouncementMapper">
+    <select id="list" resultType="com.slender.forumbackend.model.entity.announcement.Announcement">
+        SELECT a.announcement_id, a.title, a.summary, a.content, a.published_at, a.is_pinned, a.target,
+               CASE WHEN CAST(#{userId} AS BIGINT) IS NULL THEN NULL ELSE r.announcement_id IS NOT NULL END AS is_read
+        FROM announcements a
+        LEFT JOIN announcement_reads r ON r.announcement_id = a.announcement_id AND r.user_id = #{userId}
+        WHERE a.placement = #{placement} AND a.enabled = TRUE AND a.published_at &lt;= #{now}
+        ORDER BY a.is_pinned DESC, a.published_at DESC, a.announcement_id DESC LIMIT #{limit}
+    </select>
+
+    <select id="unreadCount" resultType="long">
+        SELECT COUNT(*) FROM announcements a
+        WHERE a.placement = #{placement} AND a.enabled = TRUE AND a.published_at &lt;= #{now}
+          AND NOT EXISTS (SELECT 1 FROM announcement_reads r WHERE r.announcement_id = a.announcement_id AND r.user_id = #{userId})
+    </select>
+
+    <select id="lockVisible" resultType="long">
+        SELECT announcement_id FROM announcements
+        WHERE announcement_id = #{id} AND enabled = TRUE AND published_at &lt;= #{now} FOR SHARE
+    </select>
+
+    <insert id="read">
+        INSERT INTO announcement_reads (announcement_id, user_id, read_time)
+        VALUES (#{id}, #{userId}, #{now})
+        ON CONFLICT (announcement_id, user_id) DO NOTHING
+    </insert>
+</mapper>
