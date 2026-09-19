@@ -45,3 +45,9 @@ out/
 !.env.example
 
 app.jar
+release-id.txt
+WORKBENCH_DEPLOYMENT.md
+DEPLOYMENT.md
+/tmp
+/src/test
+/src/main/resources/db/dev-migration

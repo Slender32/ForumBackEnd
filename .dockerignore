@@ -1,11 +1,43 @@
+# Version control and local tooling
 .git
 .github
+.agents
 .gradle
 .idea
 .kotlin
+.vscode
+*.iml
+*.iws
+*.ipr
+out
+bin
+
+# Build output (keep the packaged jar for runtime/full-stack images)
+build/*
+!build/libs/
+!build/libs/*.jar
 build/reports
 build/test-results
-docs
+
+# Tests and development-only migration fixtures
+/src/test
+/src/main/resources/db/dev-migration
+
+# Local files, documentation, and deployment metadata
+tmp
 .env
 .env.*
 !.env.example
+release-id.txt
+WORKBENCH_DEPLOYMENT.md
+DEPLOYMENT.md
+docs
+
+# Docker and Compose files are not needed inside the image context
+.dockerignore
+docker-compose.yml
+docker-compose.full-stack.yml
+docker-compose.deploy.yml
+Dockerfile
+full-stack.dockerfile
+runtime.dockerfile
