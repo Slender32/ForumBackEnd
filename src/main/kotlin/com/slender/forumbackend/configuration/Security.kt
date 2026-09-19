@@ -29,11 +29,13 @@ import com.slender.forumbackend.library.RequireToken.notRequireToken
 import com.slender.forumbackend.library.RequireToken.requireToken
 import com.slender.forumbackend.security.filter.JwtFilter
 import com.slender.forumbackend.security.filter.PasswordFilter
+import com.slender.forumbackend.security.filter.PublicRateLimitFilter
 import com.slender.forumbackend.security.handler.AccessRefuseHandler
 import com.slender.forumbackend.security.handler.ExceptionHandler
 import com.slender.forumbackend.security.handler.SignOutHandler
 import com.slender.forumbackend.security.handler.SignOutSuccessHandler
 import org.springframework.context.annotation.Bean
+import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -79,6 +81,7 @@ class Security {
     fun filterChain(
         http: HttpSecurity,
         jwtFilter: JwtFilter,
+        publicRateLimitFilter: PublicRateLimitFilter,
         passwordFilter: PasswordFilter,
         signOutHandler: SignOutHandler,
         signOutSuccessHandler: SignOutSuccessHandler,
@@ -100,6 +103,7 @@ class Security {
             appendFilter {
                 at<UsernamePasswordAuthenticationFilter>(passwordFilter)
                 before<LogoutFilter>(jwtFilter)
+                before<JwtFilter>(publicRateLimitFilter)
             }
 
             signOut {
@@ -113,6 +117,10 @@ class Security {
                 accessDeniedHandler(accessRefuseHandler)
             }
         }
+
+    @Bean
+    fun publicRateLimitRegistration(filter: PublicRateLimitFilter) =
+        FilterRegistrationBean(filter).apply { isEnabled = false }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()

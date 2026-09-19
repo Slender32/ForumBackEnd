@@ -31,6 +31,23 @@ spring:
           ssl:
             enable: true
 forum:
+  rate-limit:
+    key-prefix: "RateLimit:public:v2:"
+    browsing:
+      capacity: 60
+      refill-per-minute: 120
+    search:
+      capacity: 10
+      refill-per-minute: 30
+    login:
+      capacity: 10
+      refill-per-minute: 10
+    captcha:
+      capacity: 2
+      refill-per-minute: 1
+    account:
+      capacity: 5
+      refill-per-minute: 5
   archive:
     retention-days: 30
     cron: "0 0 3 * * *"
@@ -42,7 +59,6 @@ forum:
 mybatis-plus:
   configuration:
     default-enum-type-handler: com.baomidou.mybatisplus.core.handlers.MybatisEnumTypeHandler
-    #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
   global-config:
     db-config:
       id-type: auto
